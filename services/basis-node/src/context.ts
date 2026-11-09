@@ -13,6 +13,8 @@ export interface NodeContext {
   feed: Feed;
   /** Default and per-market feed overrides (e.g. PolymarketFeed for live-token markets). */
   feeds: Map<string, Feed>;
+  /** TEE oracle signer for markets with live Polymarket token ids (optional). */
+  teeSigner?: import("./tee.js").MarkSigner;
 }
 
 export function makeContext(stack: DeployedStack, feed: Feed): NodeContext {

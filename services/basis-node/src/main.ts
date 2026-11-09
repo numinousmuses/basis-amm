@@ -11,6 +11,7 @@ import { REPO_ROOT, deployStack, loadExampleManifests, startSandbox, type Deploy
 import { startNode } from "./node.js";
 import { MockFeed } from "./feeds.js";
 import { log } from "./log.js";
+import { OutlayerSigner, WasmtimeSigner, type MarkSigner } from "./tee.js";
 
 const args = process.argv.slice(2);
 const flag = (n: string) => args.includes(`--${n}`);
@@ -49,7 +50,13 @@ async function main() {
     if (!f) throw new Error("pass --sandbox or --stack <deployment.json>");
     stack = JSON.parse(readFileSync(f, "utf8"));
   }
+  // --tee-outlayer <owner/project> (needs OUTLAYER_PAYMENT_KEY) or, for development only,
+  // --tee-wasmtime <oracle-tee.wasm> (needs PROTECTED_ORACLE_KEY; same program, no TEE).
+  let teeSigner: MarkSigner | undefined;
+  if (opt("tee-outlayer")) teeSigner = new OutlayerSigner(opt("tee-outlayer")!, process.env.OUTLAYER_PAYMENT_KEY ?? "");
+  else if (opt("tee-wasmtime")) teeSigner = new WasmtimeSigner(opt("tee-wasmtime")!, process.env.PROTECTED_ORACLE_KEY ?? "");
   const node = await startNode(stack, {
+    teeSigner,
     port: Number(opt("port", "8797")),
     dbPath: opt("db", join(dataDir, `${stack.network}.sqlite`)),
     feed: new MockFeed(Number(opt("seed", "42")), Number(opt("volatility", "0.004"))),

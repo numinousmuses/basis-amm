@@ -4,6 +4,7 @@
 import { markReport, nowNs, type Market, type SignedReport } from "@basis/sdk";
 import type { NodeContext } from "./context.js";
 import { log } from "./log.js";
+import { liveTokenIds } from "./tee.js";
 
 export interface OracleOptions {
   /** Lean mode (testnet): sign every tick locally, push onchain only where NAV needs it. */
@@ -36,6 +37,13 @@ export class OracleWorker {
 
   /** Build and sign a fresh MARK for `market` observed now. */
   async sign(m: Market): Promise<SignedReport> {
+    if (this.ctx.teeSigner && liveTokenIds(m)) {
+      const s = await this.ctx.teeSigner.signMark(m, this.ctx.stack.contractId);
+      this.latest.set(m.descriptor.market_id, s);
+      const mids = s.report.outcomes.map((b) => (BigInt(b.bids[0]?.price ?? 0) + BigInt(b.asks[0]?.price ?? 0)) / 2n);
+      this.history.push({ marketId: m.descriptor.market_id, ts: BigInt(s.report.source_timestamp_ns), mids, reportId: s.report.report_id });
+      return s;
+    }
     const snap = await this.feedFor(m.descriptor.market_id).snapshot(m);
     const ts = nowNs();
     const r = markReport({

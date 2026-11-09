@@ -20,6 +20,7 @@ export interface NodeOptions {
   exposeDevKeys?: boolean;
   /** Testnet: push marks only where NAV needs them (gas costs real testnet NEAR). */
   lean?: boolean;
+  teeSigner?: import("./tee.js").MarkSigner;
   intervals?: Partial<Record<"oracle" | "orders" | "positions" | "settlement" | "executor" | "reconciler" | "events" | "marks" | "vault", number>>;
 }
 
@@ -27,6 +28,7 @@ export async function startNode(stack: DeployedStack, o: NodeOptions = {}) {
   const feed = o.feed ?? new MockFeed();
   if (o.lean) BasisClient.enableViewCache(stack.rpcUrl, 3000);
   const ctx = makeContext(stack, feed);
+  ctx.teeSigner = o.teeSigner;
   const store = new Store(o.dbPath ?? ":memory:");
   const oracle = new OracleWorker(ctx, { lean: o.lean, pushEveryMs: 180_000 });
   const keeper = new Keeper(ctx, oracle);
