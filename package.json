@@ -19,6 +19,7 @@
     "typescript": "^5.7.0",
     "@basis/stack": "workspace:*",
     "@basis/sdk": "workspace:*",
-    "@types/node": "^22.10.0"
+    "@types/node": "^22.10.0",
+    "near-api-js": "7.4.0"
   }
 }

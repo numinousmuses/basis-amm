@@ -18,22 +18,22 @@ export function loadLegacyCredential(accountId: string): KeyedAccount {
 
 const milli = (n: number) => (BigInt(Math.round(n * 1000)) * NEAR) / 1000n;
 
-/** ~25.3 NEAR total. The core account locks ~7.2 NEAR for the 711 KB wasm plus state. */
+/** ~27.1 NEAR total. The core account locks ~7.2 NEAR for the 711 KB wasm plus state. */
 export const TESTNET_BUDGET: Record<RoleName, bigint> = {
   // Every signer needs ~0.31 NEAR free on top of its own storage: NEAR reserves the full prepaid
   // 300 Tgas at a pessimistic gas price before refunding the unused part.
   core: milli(12),
   usdc: milli(2.5),
   admin: milli(1.5),
-  risk: milli(0.8),
-  guardian: milli(0.6),
+  risk: milli(1),
+  guardian: milli(0.8),
   keeper: milli(3),
   executor: milli(1),
-  lp: milli(0.6),
-  alice: milli(1),
-  bob: milli(1),
-  carol: milli(0.8),
-  dave: milli(0.5),
+  lp: milli(1),
+  alice: milli(1.2),
+  bob: milli(1.2),
+  carol: milli(1),
+  dave: milli(0.7),
 };
 
 export function testnetConfig(over: Partial<ProtocolConfig> = {}): ProtocolConfig {

@@ -111,6 +111,11 @@ export interface BasisClientOptions {
   signerId?: string;
 }
 
+/** Highest block height any write through this process landed in, per RPC URL. Load-balanced
+ * RPC endpoints can serve a node one block behind; views wait until the node has caught up so a
+ * read after a write always sees that write. */
+const writeHeads = new Map<string, number>();
+
 export class BasisClient {
   readonly provider: JsonRpcProvider;
   readonly contractId: string;
@@ -137,8 +142,39 @@ export class BasisClient {
 
   // ------------------------------------------------------------------ low level
 
+  private get rpcUrl(): string {
+    return (this.provider as any).connection?.url ?? "";
+  }
+
   async view<T>(method: string, args: Record<string, unknown> = {}, contractId = this.contractId): Promise<T> {
-    return (await this.provider.callFunction({ contractId, method, args })) as T;
+    const min = writeHeads.get(this.rpcUrl) ?? 0;
+    for (let attempt = 0; ; attempt++) {
+      const r: any = await this.provider.callFunctionRaw({ contractId, method, args, blockQuery: { finality: "optimistic" } } as any);
+      if ((r.block_height ?? Infinity) >= min || attempt >= 40) {
+        if (!r.result || r.result.length === 0) return undefined as T;
+        const text = new TextDecoder().decode(new Uint8Array(r.result));
+        try {
+          return JSON.parse(text) as T;
+        } catch {
+          return text as unknown as T;
+        }
+      }
+      await new Promise((res) => setTimeout(res, 250));
+    }
+  }
+
+  /** Record the height of the last block a transaction's receipts executed in. */
+  private async noteWrite(raw: any) {
+    const hashes: string[] = (raw?.receipts_outcome ?? []).map((r: any) => r.block_hash).filter(Boolean);
+    const last = hashes[hashes.length - 1];
+    if (!last) return;
+    try {
+      const b: any = await this.provider.viewBlock({ blockId: last } as any);
+      const h = Number(b?.header?.height ?? 0);
+      if (h > (writeHeads.get(this.rpcUrl) ?? 0)) writeHeads.set(this.rpcUrl, h);
+    } catch {
+      /* best effort */
+    }
   }
 
   async call<T = unknown>(
@@ -167,6 +203,7 @@ export class BasisClient {
       if (opts.allowFailure) return result as TxResult<T>;
       throw new BasisTxError(`${method}: ${panic}`, result);
     }
+    await this.noteWrite(raw);
     const r = parseTx<T>(raw);
     if (r.failures.length && !opts.allowFailure) throw new BasisTxError(`${method}: ${r.failures.join(" | ")}`, r);
     return r;
