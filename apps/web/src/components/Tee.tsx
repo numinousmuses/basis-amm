@@ -59,7 +59,7 @@ export function TeePanel() {
       ))}
       <div className="smallTitle">TEE executor keys (get_tee_executors)</div>
       {execs.error && <ErrorBox error={execs.error} />}
-      {execs.data && execs.data.length === 0 && <Empty>No TEE executor key is registered. Live hedges would be signed by an operator key instead, and this demo places none.</Empty>}
+      {execs.data && execs.data.length === 0 && <Empty>No TEE executor key is registered. In LIVE mode, hedge orders would be signed by the key basis-node was started with instead.</Empty>}
       {(execs.data ?? []).map((k) => (
         <div className="configLine" key={k.evm_address} data-testid="tee-executor-row">
           <div>

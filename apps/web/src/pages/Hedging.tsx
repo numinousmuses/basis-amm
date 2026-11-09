@@ -3,7 +3,7 @@ import type { HedgeFillReceipt } from "@basis/sdk";
 import { api, type ExecFill, type MarketRow, type PolymarketStatus } from "../lib/api";
 import { navigate, useApp, useLive } from "../lib/app";
 import { usePoll } from "../lib/hooks";
-import { big, cents, fmtDate, nsToMs, shortHash, units } from "../lib/format";
+import { big, cents, fmtDate, nsToMs, shortHash, units, usd } from "../lib/format";
 import { isLiveMarket, truthy, txLink, venueLabel } from "../lib/live";
 import { Bar, Empty, ErrorBox, Heading, Line, Loading, Metric } from "../components/ui";
 import { TxRef, VenueChip } from "../components/Venue";
@@ -119,7 +119,7 @@ export function HedgingPage() {
                         <td className="muted">{o.label}</td>
                         <td className="number">{units(on)}</td>
                         <td className={`number ${on === cu ? "" : "red"}`}>{units(cu)}</td>
-                        <td>${units(r.risk.hedge_cost[i] ?? "0")}</td>
+                        <td>{usd(r.risk.hedge_cost[i] ?? "0")}</td>
                         {i === 0 && (
                           <td rowSpan={d.outcomes.length} style={{ verticalAlign: "top", maxWidth: 240 }}>
                             {rc ? <span className={`chip ${rc.ok ? "on" : "bad"}`}>{rc.ok ? "Matches custody" : "POLYGON_RECONCILIATION_FAILED"}</span> : <span className="chip">Not checked yet</span>}
@@ -186,7 +186,7 @@ function FillsTable({ rows, byId }: { rows: ExecFill[]; byId: Map<string, Market
             const d = r?.market.descriptor;
             const redeem = f.fill_id.startsWith("redeem:");
             return (
-              <tr key={f.fill_id} data-testid={`fill-row-${f.order_id ?? f.fill_id}`} data-side={f.side} onClick={() => d && navigate("trade", d.market_id)}>
+              <tr key={f.fill_id} data-testid={`fill-row-${redeem ? "redeem" : f.side}-${f.order_id ?? f.fill_id}`} data-side={f.side} onClick={() => d && navigate("trade", d.market_id)}>
                 <td className="muted">{fmtDate(f.ts_ms)}</td>
                 <td>
                   <div className="event">{d?.underlying_event ?? f.market}</div>
@@ -264,7 +264,7 @@ function ContractFills({ rows }: { rows: MarketRow[] }) {
                   </td>
                   <td className="number">{units(f.units)}</td>
                   <td className="number">{cents(f.price)}</td>
-                  <td>${units(f.fee, 4)}</td>
+                  <td>{usd(f.fee, 4)}</td>
                   <td className="code">{f.order_id ? `#${f.order_id}` : "none"}</td>
                   <td>
                     <TxRef hash={f.tx_hash} simulated={f.simulated} />

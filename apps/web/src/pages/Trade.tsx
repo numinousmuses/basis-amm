@@ -354,6 +354,15 @@ function Composer({ row, outcome, setOutcome, protocolMax, openRules }: { row: M
     <>
       <div className="surface" data-testid="composer">
         <div className="surfaceTitle">Open position</div>
+        {rampClosed && (
+          <div className="errorBox" style={{ marginTop: 0, marginBottom: 12 }} data-testid="ramp-closed" data-code="PRE_RESOLUTION_RAMP">
+            <b>{explainError("PRE_RESOLUTION_RAMP").title}</b>
+            <div>
+              No new positions since {fmtDate(rampStartMs)}: maintenance for losing positions rises from {shortPct(policy.maintenance_bps)} to {shortPct(policy.pre_resolution_maintenance_bps)} between then and expected resolution on {fmtDate(nsToMs(desc.expected_resolution_ns))}. A fresh position would start underwater by the spread and the ramp could liquidate it at once.
+            </div>
+            <div style={{ marginTop: 6 }}>Existing positions can still be closed, topped up and settled.</div>
+          </div>
+        )}
         <div className="seg">
           {desc.outcomes.map((o) => (
             <button key={o.outcome_id} className={outcome === o.outcome_id ? "active" : ""} onClick={() => setOutcome(o.outcome_id)} data-testid={`outcome-${o.outcome_id}`}>
@@ -472,15 +481,6 @@ function Composer({ row, outcome, setOutcome, protocolMax, openRules }: { row: M
         {feeTooLow && (
           <div className="warnBox" data-testid="fee-warning">
             Your fee cap ({usd(maxFee)}) is below the quoted upfront fee ({usd(upfront)}). The contract will likely reject this order with FAIR_VALUE.
-          </div>
-        )}
-        {rampClosed && (
-          <div className="errorBox" data-testid="ramp-closed" data-code="PRE_RESOLUTION_RAMP">
-            <b>{explainError("PRE_RESOLUTION_RAMP").title}</b>
-            <div>
-              No new positions since {fmtDate(rampStartMs)}: maintenance for losing positions rises from {shortPct(policy.maintenance_bps)} to {shortPct(policy.pre_resolution_maintenance_bps)} between then and expected resolution on {fmtDate(nsToMs(desc.expected_resolution_ns))}. A fresh position would start underwater by the spread and the ramp could liquidate it at once.
-            </div>
-            <div style={{ marginTop: 6 }}>Existing positions can still be closed, topped up and settled.</div>
           </div>
         )}
         {!row.actions.open && otherReasons.length > 0 && (
