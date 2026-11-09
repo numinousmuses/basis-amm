@@ -1,0 +1,38 @@
+{
+  "name": "@basis/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5418",
+    "build": "tsc --noEmit -p . && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 5417 --strictPort",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p .",
+    "e2e": "playwright test",
+    "capture": "tsx scripts/capture.ts"
+  },
+  "dependencies": {
+    "@basis/sdk": "workspace:*",
+    "@near-wallet-selector/core": "^10.1.4",
+    "@near-wallet-selector/meteor-wallet": "^10.1.4",
+    "@near-wallet-selector/modal-ui": "^10.1.4",
+    "@near-wallet-selector/my-near-wallet": "^10.1.4",
+    "near-api-js": "7.4.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "near-api-js-v6": "npm:near-api-js@6.5.1",
+    "buffer": "^6.0.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vite": "^7.0.0",
+    "vitest": "^3.0.0"
+  }
+}
