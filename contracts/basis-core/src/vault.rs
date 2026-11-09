@@ -162,8 +162,11 @@ impl Contract {
                 continue;
             }
             let settled_scenario = if m.state == MarketState::Settled { m.resolved_scenario } else { None };
-            let mark = if settled_scenario.is_some() { None } else { self.fresh_mark(id, staleness) };
-            if settled_scenario.is_none() && mark.is_none() {
+            // A resolving market has no executable book by design: value it conservatively (claims
+            // at their event maximum, hedges at zero) instead of freezing NAV for every market.
+            let resolving = m.state == MarketState::Resolving;
+            let mark = if settled_scenario.is_some() || resolving { None } else { self.fresh_mark(id, staleness) };
+            if settled_scenario.is_none() && mark.is_none() && !resolving {
                 fresh = false;
             }
             let matrix: Vec<Vec<u128>> =

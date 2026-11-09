@@ -83,8 +83,14 @@ export class MockExecutor {
           executed_ns: nowNs().toString(),
           simulated: true,
         };
-        await this.ctx.executor.submitHedgeFill(fill);
+        // Record custody first so the reconciler never sees onchain inventory without it.
         this.hold(intent.market_id, intent.outcome_id, units, m.descriptor.outcomes.length);
+        try {
+          await this.ctx.executor.submitHedgeFill(fill);
+        } catch (e) {
+          this.hold(intent.market_id, intent.outcome_id, -units, m.descriptor.outcomes.length);
+          throw e;
+        }
         this.store?.insertFill({ fill_id: fill.fill_id, order_id: id, market: intent.market_id, outcome: intent.outcome_id, units: units.toString(), price: ask.toString(), tx: fill.tx_hash });
         this.fills.push({ fillId: fill.fill_id, orderId: id, marketId: intent.market_id, outcomeId: intent.outcome_id, units, price: ask, txHash: fill.tx_hash });
         log("info", "executor", "simulated hedge fill", { order: id, units, price: ask });
