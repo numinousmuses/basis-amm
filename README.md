@@ -18,7 +18,11 @@ parameters are provisional until the product owner decides spec section 14 (`doc
 
 ## Demo video
 
-`video/out/basis-amm-demo.mp4` (Remotion, built from real app footage: `video/`).
+[`video/basis-amm-demo.mp4`](video/basis-amm-demo.mp4) (86 s, 1080p). Built with Remotion from
+footage the Playwright capture script recorded on the real app (`video/src`, `video/footage`).
+Render it yourself with `pnpm --filter @basis/video render`.
+
+[![Basis-AMM demo](video/poster.png)](video/basis-amm-demo.mp4)
 
 ## What is in the repo
 
@@ -75,9 +79,13 @@ conservation after every step.
 
 ## NEAR testnet
 
-`docs/integration-proofs/` lists the deployed accounts and an explorer link for every
-transaction the acceptance suite sent on testnet. `docs/deployment.md` explains how to deploy
-your own stack from faucet accounts.
+- The full acceptance suite passed on NEAR testnet, 16 of 16. Every step's transaction is linked
+  in [`docs/integration-proofs/README.md`](docs/integration-proofs/README.md).
+- A live demo stack runs at
+  [`core.live.basislive211107.testnet`](https://testnet.nearblocks.io/address/core.live.basislive211107.testnet)
+  (accounts in `docs/integration-proofs/testnet-live.json`). Point basis-node at a deployment
+  file and the dashboard at basis-node to trade on it with MyNearWallet or Meteor.
+- `docs/deployment.md` explains how to deploy your own stack from faucet accounts.
 
 ## License
 
