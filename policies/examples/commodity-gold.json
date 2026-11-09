@@ -14,7 +14,8 @@
         "label": "NO",
         "venue_token_ref": "polygon:ctf:gold-no"
       }
-    ]
+    ],
+    "expected_resolution": "now+2592000"
   },
   "policy": {
     "max_spread_bps": 800,
