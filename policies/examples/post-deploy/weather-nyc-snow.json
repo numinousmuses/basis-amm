@@ -1,0 +1,17 @@
+{
+  "extends": "../_base.json",
+  "descriptor": {
+    "market_id": "pm-nyc-snow-december",
+    "external_market_id": "polymarket:condition:0xnyc-snow-demo",
+    "underlying_event": "Will Central Park record 1+ inch of snow in December?",
+    "category_label": "Weather",
+    "outcomes": [
+      { "label": "YES", "venue_token_ref": "polygon:ctf:nyc-snow-yes" },
+      { "label": "NO", "venue_token_ref": "polygon:ctf:nyc-snow-no" }
+    ]
+  },
+  "policy": {
+    "max_leverage": "2",
+    "human_readable_rules": "Admitted after deployment through a manifest and a timelocked approval. No contract redeploy, no category code."
+  }
+}

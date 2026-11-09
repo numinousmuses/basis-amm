@@ -1,0 +1,20 @@
+{
+  "extends": "_base.json",
+  "descriptor": {
+    "market_id": "pm-nba-lakers-celtics",
+    "external_market_id": "polymarket:condition:0xnba-demo",
+    "underlying_event": "Lakers vs Celtics: will the Lakers win?",
+    "category_label": "Sports",
+    "outcomes": [
+      { "label": "LAKERS", "venue_token_ref": "polygon:ctf:nba-lal" },
+      { "label": "CELTICS", "venue_token_ref": "polygon:ctf:nba-bos" }
+    ],
+    "expected_resolution": "now+14400"
+  },
+  "policy": {
+    "max_leverage": "3",
+    "max_spread_bps": 1200,
+    "event_windows": [{ "label": "Final two minutes of play", "start": "now+10800", "end": "now+14400", "mode": "CloseOnly" }],
+    "human_readable_rules": "In-play entry allowed while the executable book stays inside a 12% spread. CLOSE_ONLY during the final two minutes of play. Max 3x."
+  }
+}

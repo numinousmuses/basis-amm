@@ -1,0 +1,12 @@
+{
+  "name": "@basis/e2e",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "vitest run --no-file-parallelism",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": { "@basis/sdk": "workspace:*", "@basis/stack": "workspace:*", "near-api-js": "7.4.0" },
+  "devDependencies": { "@types/node": "^22.10.0", "typescript": "^5.7.0", "vitest": "^3.0.0", "tsx": "^4.19.0" }
+}

@@ -1,0 +1,36 @@
+{
+  "extends": "_base.json",
+  "descriptor": {
+    "market_id": "pm-fed-dec-decision",
+    "external_market_id": "polymarket:condition:0xfed-demo",
+    "underlying_event": "Fed decision at the December FOMC meeting",
+    "category_label": "Macro",
+    "outcomes": [
+      {
+        "label": "CUT",
+        "venue_token_ref": "polygon:ctf:fed-cut"
+      },
+      {
+        "label": "HOLD",
+        "venue_token_ref": "polygon:ctf:fed-hold"
+      },
+      {
+        "label": "HIKE",
+        "venue_token_ref": "polygon:ctf:fed-hike"
+      }
+    ],
+    "expected_resolution": "now+3456000"
+  },
+  "policy": {
+    "max_leverage": "5",
+    "event_windows": [
+      {
+        "label": "FOMC statement release",
+        "start": "now+3450000",
+        "end": "now+3456000",
+        "mode": "CloseOnly"
+      }
+    ],
+    "human_readable_rules": "Three mutually exclusive outcomes priced from their exact payout vector. CLOSE_ONLY around the FOMC statement release."
+  }
+}

@@ -103,6 +103,8 @@ export class BasisClient {
   readonly contractId: string;
   readonly tokenId: string;
   account?: Account;
+  /** Execution wait level; EXECUTED_OPTIMISTIC waits for every receipt (cross-contract included). */
+  waitUntil: "EXECUTED_OPTIMISTIC" | "FINAL" = "EXECUTED_OPTIMISTIC";
 
   constructor(opts: BasisClientOptions) {
     this.provider = new JsonRpcProvider({ url: opts.rpcUrl });
@@ -135,7 +137,7 @@ export class BasisClient {
         args,
         gas: opts.gas ?? 300n * TGAS,
         deposit: opts.deposit ?? 0n,
-        waitUntil: "FINAL",
+        waitUntil: this.waitUntil,
       });
     } catch (e: any) {
       const msg = String(e?.message ?? e);

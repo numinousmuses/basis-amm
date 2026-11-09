@@ -1,0 +1,53 @@
+{
+  "_comment": "PROVISIONAL testnet values pending Joshua's section 14 decisions. Every number here is data, not contract code.",
+  "descriptor": {
+    "venue": "polymarket",
+    "chain": "polygon:137",
+    "scenarios": "exclusive",
+    "resolution_adapter_id": "uma-ctf-resolution@1",
+    "resolution_source": "Polymarket UMA CTF adapter finalized outcome (mock-verified on sandbox/testnet)",
+    "event_start": "now",
+    "expected_resolution": "now+604800"
+  },
+  "policy": {
+    "risk_model_id": "scenario-stress-v1@1",
+    "executor_adapter_id": "mock-venue@1",
+    "pricing_adapter_id": "depth-walk-mark@1",
+    "strategy": "PoolOnly",
+    "allowed_actions": { "open": true, "increase": false, "reduce": true, "close": true, "liquidate": true },
+    "entry_start": "now-60",
+    "entry_end": "now+604800",
+    "event_windows": [],
+    "max_leverage": "5",
+    "min_adverse_ticks": 10,
+    "tick_size": "0.01",
+    "min_margin_usd": "10",
+    "max_margin_usd": "10000",
+    "max_open_units_per_outcome": "1000000",
+    "max_payout_liability_usd": "250000",
+    "maintenance_bps": 500,
+    "maintenance_fixed_usd": "1",
+    "max_spread_bps": 800,
+    "exit_depth_bps": 10000,
+    "max_mark_staleness_s": 120,
+    "min_resolution_reporters": 1,
+    "dispute_window_s": 5,
+    "fees": {
+      "open_bps": 10,
+      "close_bps": 10,
+      "hold_apr_bps": 1000,
+      "liquidation_reward_bps": 500,
+      "liquidation_reward_cap_usd": "5",
+      "floor_coverage_bps": 500,
+      "insurance_share_bps": 2000,
+      "treasury_share_bps": 1000
+    },
+    "event_stress_cap_bps": 200,
+    "hedge_budget_bps": 0,
+    "max_hedge_slippage_bps": 200,
+    "min_fill_floor_pct": "10",
+    "max_order_lifetime_s": 600,
+    "governance_approval": "PROVISIONAL testnet policy; requires product-owner approval before real funds",
+    "human_readable_rules": ""
+  }
+}

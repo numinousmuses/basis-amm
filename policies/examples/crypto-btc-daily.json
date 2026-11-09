@@ -1,0 +1,24 @@
+{
+  "extends": "_base.json",
+  "descriptor": {
+    "market_id": "pm-btc-above-100k-daily",
+    "external_market_id": "polymarket:condition:0xbtc-daily-demo",
+    "underlying_event": "Will BTC trade above $100,000 at 16:00 UTC today?",
+    "category_label": "Crypto",
+    "outcomes": [
+      {
+        "label": "YES",
+        "venue_token_ref": "polygon:ctf:btc-daily-yes"
+      },
+      {
+        "label": "NO",
+        "venue_token_ref": "polygon:ctf:btc-daily-no"
+      }
+    ],
+    "expected_resolution": "now+86400"
+  },
+  "policy": {
+    "fees": {},
+    "human_readable_rules": "Entry open until 1h before resolution. Max 5x, smaller when the tick-sensitivity test binds. Risk premium covers 5% of the hold-to-resolution floor value. Losing positions are liquidated at 5% maintenance + $1. Profit is never capped or force-closed."
+  }
+}

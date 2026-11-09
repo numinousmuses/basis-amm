@@ -1,0 +1,18 @@
+{
+  "extends": "_base.json",
+  "descriptor": {
+    "market_id": "pm-eth-above-4k-weekly",
+    "external_market_id": "polymarket:condition:0xeth-weekly-demo",
+    "underlying_event": "Will ETH close the week above $4,000?",
+    "category_label": "Crypto",
+    "outcomes": [
+      { "label": "YES", "venue_token_ref": "polygon:ctf:eth-weekly-yes" },
+      { "label": "NO", "venue_token_ref": "polygon:ctf:eth-weekly-no" }
+    ]
+  },
+  "policy": {
+    "strategy": "HedgeRequired",
+    "hedge_budget_bps": 1500,
+    "human_readable_rules": "HEDGE_REQUIRED: no position opens until the vault's exact-share hedge fills on the venue. Partial hedges scale the position; below your minimum fill the order is refunded in full."
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "extends": "../_base.json",
+  "descriptor": {
+    "market_id": "pm-bad-payout-vector",
+    "external_market_id": "polymarket:condition:0xbad",
+    "underlying_event": "Malformed market: payout vector pays more than a complete set",
+    "category_label": "Test",
+    "outcomes": [
+      { "label": "A", "venue_token_ref": "polygon:ctf:bad-a" },
+      { "label": "B", "venue_token_ref": "polygon:ctf:bad-b" }
+    ],
+    "scenarios": [
+      { "label": "A wins", "payouts": ["1", "1"] },
+      { "label": "B wins", "payouts": ["0", "1"] }
+    ]
+  }
+}

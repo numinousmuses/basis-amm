@@ -1,0 +1,37 @@
+{
+  "extends": "_base.json",
+  "descriptor": {
+    "market_id": "pm-senate-control-2026",
+    "external_market_id": "polymarket:condition:0xsenate-demo",
+    "underlying_event": "Which party controls the US Senate after the 2026 election?",
+    "category_label": "Elections",
+    "outcomes": [
+      {
+        "label": "REPUBLICAN",
+        "venue_token_ref": "polygon:ctf:senate-r"
+      },
+      {
+        "label": "DEMOCRAT",
+        "venue_token_ref": "polygon:ctf:senate-d"
+      }
+    ],
+    "invalid_scenario": {
+      "label": "INVALID (50/50)",
+      "payouts": [
+        "0.5",
+        "0.5"
+      ]
+    },
+    "expected_resolution": "now+2592000"
+  },
+  "policy": {
+    "strategy": "PoolPlusHedge",
+    "max_leverage": "5",
+    "hedge_budget_bps": 1000,
+    "fees": {
+      "hold_apr_bps": 1500
+    },
+    "dispute_window_s": 8,
+    "human_readable_rules": "Long holding period with a 15% APR holding charge on the virtual financing base. Vault may hold exact-share hedges (POOL_PLUS_HEDGE). Settlement waits for finalized UMA resolution; an invalid market pays 0.50 per unit."
+  }
+}

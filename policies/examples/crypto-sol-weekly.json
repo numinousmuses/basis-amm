@@ -1,0 +1,16 @@
+{
+  "extends": "_base.json",
+  "descriptor": {
+    "market_id": "pm-sol-above-300-weekly",
+    "external_market_id": "polymarket:condition:0xsol-weekly-demo",
+    "underlying_event": "Will SOL close the week above $300?",
+    "category_label": "Crypto",
+    "outcomes": [
+      { "label": "YES", "venue_token_ref": "polygon:ctf:sol-weekly-yes" },
+      { "label": "NO", "venue_token_ref": "polygon:ctf:sol-weekly-no" }
+    ]
+  },
+  "policy": {
+    "human_readable_rules": "Weekly crypto event. Max 5x. YES and NO are both offered as exact outcome claims; every fill is against the vault, never another trader."
+  }
+}
