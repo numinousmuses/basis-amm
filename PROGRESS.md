@@ -79,3 +79,11 @@ labeled deterministic mock executor (spec section 11 "hackathon minimum").
   require_attested_marks, contracts/mock-outlayer (sandbox only), basis-node --tee-outlayer/--tee-wasmtime. docs/tee-oracle.md.
   Decisions: docs/decisions.md DECIDED; caps 4x crypto/election, 3x sports/Fed, ceiling 5x; coverage 15/35/55/55%; final-hour CLOSE_ONLY;
   bLP non-transferable. Tests use specFixtureManifests() (labeled 5x override). All suites green: e2e 21, node 10, web 25+7, rust 37+5.
+- 2026-11-09 13:45 ET: round 3 (Joshua: build real Polymarket, everything runnable locally + testnet, no deploy needed).
+  Built: services/basis-node/src/polymarket/{refs,books,venues,tee-signer,resolution,admit}.ts (SDK @polymarket/client 0.18; paper venue walks LIVE books;
+  live venue = real FAK orders, opt-in BASIS_POLYMARKET_LIVE=1 + caps; unwind on close, redeem on settle; resolver = Polymarket API + CTF on Polygon).
+  crates/executor-tee (EIP-712 signer, signs only ClobAuth + bounded Orders; reference-vector tested). Contract: maintenance ramp (losers only,
+  opens blocked once ramp starts), closed_ns, 2% overfill tolerance, unwind sells, TEE executor registry. Coverage recalibrated with ramp:
+  crypto 10%, election 25%, Fed 15%, sports 50%. Tests: live suite services/basis-node/test/polymarket-live.test.ts (BASIS_LIVE_TESTS=1) 5/5;
+  tests/e2e/test/lifecycle.test.ts 3/3. Testnet v3 stack: core.basisv349012.testnet (infra/testnet/v3-stack.secret.json).
+  Dashboard additions DELEGATED to a background agent (commits apps/web, video/footage only). Next: testnet Polymarket demo script, docs, video re-render.
