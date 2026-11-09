@@ -3,11 +3,15 @@ import { navigate, useLive } from "../lib/app";
 import { usePoll, useNow } from "../lib/hooks";
 import { big, fmtSeconds, isSimulatedSource, nsToMs, ratioPct, signedUsd, usd } from "../lib/format";
 import { Bar, Empty, ErrorBox, Heading, Loading, Metric } from "../components/ui";
+import { TeePanel } from "../components/Tee";
+import { VenueChip } from "../components/Venue";
+import { venueLabel } from "../lib/live";
 
 export function RiskPage() {
   const markets = usePoll(() => api.markets(), [], 5000);
   const vault = usePoll(() => api.vault(), [], 8000);
   const recon = usePoll(() => api.reconciliation(), [], 10000);
+  const pm = usePoll(() => api.polymarketStatus(), [], 15000);
   const now = useNow(1000);
   useLive((m) => m.type === "event" && ["position_opened", "position_closed", "liquidated", "settled"].includes(m.kind) && void markets.reload());
   const rows = markets.data ?? [];
@@ -67,6 +71,7 @@ export function RiskPage() {
                           <div className="eventMeta">
                             {d.category_label} · {r.market.state} · {r.risk.open_positions} open · margin {usd(r.risk.open_margin, 0)}
                           </div>
+                          <VenueChip d={d} mark={r.mark} policy={r.policy} compact />
                         </td>
                       )}
                       <td className="muted">{scn.label}</td>
@@ -109,7 +114,7 @@ export function RiskPage() {
                     {r.mark ? `${r.mark.report.source_chain} · ${r.mark.report.attestation_ref}` : "No mark"} · limit {r.policy ? fmtSeconds(nsToMs(r.policy.max_mark_staleness_ns) / 1000) : "n/a"}
                   </div>
                 </div>
-                <span>
+                <span style={{ whiteSpace: "nowrap" }}>
                   {isSimulatedSource(r.mark?.report.source_chain) && <span className="chip sim" style={{ marginRight: 6 }}>Simulated</span>}
                   <span className={`chip ${f.ok ? "on" : "warn"}`}>{f.age === null ? "No mark" : `${f.ok ? "Fresh" : "PRICE_STALE"} · ${fmtSeconds(Math.round(f.age / 1000))}`}</span>
                 </span>
@@ -132,9 +137,15 @@ export function RiskPage() {
             </div>
           ))}
           {recon.data && Object.keys(recon.data).length === 0 && <Empty>No reconciliation reports yet.</Empty>}
-          <div className="callout">Reconciliation compares the vault's recorded hedge inventory with the executor custody report. On this deployment the executor is a labeled mock that produces receipts with simulated: true.</div>
+          <div className="callout">
+            Reconciliation compares the vault's recorded hedge inventory with the executor custody report. Fixture markets hedge on the mock venue; live Polymarket markets hedge in {pm.data ? venueLabel(pm.data.venue, pm.data.simulated).mode : "the configured"} mode.{" "}
+            <button className="link" onClick={() => navigate("hedging")}>
+              Hedge executor ↗
+            </button>
+          </div>
         </div>
       </div>
+      <TeePanel />
     </>
   );
 }

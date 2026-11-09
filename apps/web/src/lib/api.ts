@@ -152,6 +152,67 @@ export interface ReconReport {
   [k: string]: unknown;
 }
 
+/** Executor ledger row (sqlite `exec_fills`). `simulated` is 0/1. Units are shares in 1e6. */
+export interface ExecFill {
+  fill_id: string;
+  order_id: string | null;
+  market: string;
+  outcome: number;
+  units: string;
+  price: string;
+  tx: string;
+  ts_ms: number;
+  side: "buy" | "sell" | string;
+  simulated: number | boolean;
+}
+export interface ResolverObservation {
+  source: string;
+  resolved: boolean;
+  payoutsPpm: string[];
+  evidence: string;
+}
+export interface PolymarketStatus {
+  venue: string | null;
+  simulated: boolean;
+  executor_address: string | null;
+  signer_audit: Array<{ at: string; primaryType: string; ok: boolean; error?: string }>;
+  spent_today_usd: number;
+  caps: { max_order_usd: number; max_daily_usd: number } | null;
+  resolutions: Record<string, { api?: ResolverObservation; chain?: ResolverObservation; at: string }>;
+  custody: Record<string, string[]>;
+}
+export interface DiscoveredMarket {
+  question: string;
+  conditionId: string;
+  slug: string;
+  endDate: string;
+  outcomes: string[];
+  tokenIds: string[];
+  liquidity: number;
+  volume24h: number;
+  tickSize: number;
+  category: string;
+}
+/** Subset of `@polymarket/client` fetchMarket we display. */
+export interface PolymarketMarket {
+  id: string;
+  version: "v1" | "v2" | string;
+  slug: string;
+  conditionId: string;
+  question: string;
+  outcomes: { yes?: { label: string; price: string }; no?: { label: string; price: string } };
+  prices?: { bestBid?: string; bestAsk?: string; lastTradePrice?: string };
+  state?: { acceptingOrders?: boolean; endDate?: string };
+}
+export interface AdmitResult {
+  ok: boolean;
+  market_id: string;
+  propose_tx: string;
+  approve_tx: string;
+  polymarket_slug: string;
+}
+export type Family = "crypto" | "sports" | "election" | "macro";
+
 export const api = {
   stack: () => req<StackInfo>("/api/stack"),
   health: () => req<{ ok: boolean; uptime_s: number; keeper: Record<string, number>; last_seq: number }>("/api/health"),
@@ -164,7 +225,11 @@ export const api = {
   account: (id: string) => req<AccountInfo>(`/api/accounts/${encodeURIComponent(id)}`),
   quote: (q: { market_id: string; outcome_id: number; margin: string; leverage: string; max_fee?: string }) => post<Quote>("/api/quote", q),
   reconciliation: () => req<Record<string, ReconReport>>("/api/reconciliation"),
-  fills: () => req<Array<{ fill_id: string; order_id: string | null; market: string; outcome: number; units: string; price: string; tx: string; ts_ms: number }>>("/api/executor/fills"),
+  fills: () => req<ExecFill[]>("/api/executor/fills"),
+  polymarketStatus: () => req<PolymarketStatus>("/api/polymarket/status"),
+  discover: (limit = 30) => req<DiscoveredMarket[]>(`/api/polymarket/discover?limit=${limit}`),
+  polymarketMarket: (slug: string) => req<PolymarketMarket>(`/api/polymarket/market/${encodeURIComponent(slug)}`),
+  admitPolymarket: (b: { slug: string; family?: Family; strategy?: "HedgeRequired" | "PoolPlusHedge" | "PoolOnly" }) => post<AdmitResult>("/api/dev/admit-polymarket", b),
   manifests: () => req<ManifestEntry[]>("/api/manifests"),
   devAccounts: () => req<DevAccount[]>("/api/dev/accounts"),
   devVenue: (b: { market_id: string; mids?: string[]; clear?: boolean; status?: string }) => post<{ ok: boolean; label: string }>("/api/dev/venue", b),

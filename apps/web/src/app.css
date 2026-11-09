@@ -34,3 +34,17 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .mockPanel h3 { color: #4b4878; }
 .adminGrid .config, .adminGrid .mockPanel { min-width: 0; }
 .wrapCode { word-break: break-all; }
+.chip.live { background: #e7f0f8; color: #2f5f8a; font-weight: 550; }
+.venueTag { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 10px; margin-top: 4px; }
+.venueTag .link { font-size: 11px; }
+.modeBanner { border-radius: 14px; padding: 20px 23px; margin-bottom: 20px; display: flex; justify-content: space-between; gap: 18px; align-items: center; }
+.modeBanner.sim { background: #f3f2fa; color: #4b4878; }
+.modeBanner.bad { background: #f8e6e4; color: #7d3a35; }
+.modeBanner .modeTitle { font-size: 21px; letter-spacing: -.04em; font-weight: 520; }
+.modeBanner .modeDetail { font-size: 12px; margin-top: 4px; max-width: 760px; }
+.modeBanner .modeTag { font-size: 30px; letter-spacing: -.02em; font-weight: 650; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.obsGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+.obs { background: #f7f7f5; border-radius: 11px; padding: 13px 14px; font-size: 12px; min-width: 0; }
+.obs b { display: block; margin-bottom: 4px; }
+.pickRow.selected td { background: #f1f1ef; }

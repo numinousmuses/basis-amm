@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { LEV_SCALE } from "@basis/sdk";
 import { api, type MarketRow } from "../lib/api";
-import { navigate, useApp, useLive } from "../lib/app";
+import { navigate, useLive } from "../lib/app";
 import { usePoll } from "../lib/hooks";
 import { explainReason } from "../lib/errors";
-import { bestAsk, big, cents, fmtDate, isSimulatedSource, levX, markDepthUsd, midOf, minBig, nsToMs, ratioPct, usd } from "../lib/format";
-import { Empty, ErrorBox, Heading, Loading, Metric, SimLabel, StateChip } from "../components/ui";
+import { bestAsk, big, cents, fmtDate, levX, markDepthUsd, midOf, minBig, nsToMs, ratioPct, usd } from "../lib/format";
+import { isLiveMarket } from "../lib/live";
+import { Empty, ErrorBox, Heading, Loading, Metric, StateChip } from "../components/ui";
+import { VenueChip } from "../components/Venue";
 
 /** Leverage the market offers right now: min(policy max, protocol ceiling, tick-sensitivity
  * ceiling at the current best ask of the first outcome). */
@@ -21,7 +23,6 @@ export function offeredLeverage(row: MarketRow, protocolMax: bigint): bigint | n
 }
 
 export function MarketsPage() {
-  const app = useApp();
   const markets = usePoll(() => api.markets(), [], 6000);
   const vault = usePoll(() => api.vault(), [], 10000);
   const [cat, setCat] = useState("All");
@@ -35,6 +36,7 @@ export function MarketsPage() {
   const openMargin = rows.reduce((a, r) => a + big(r.risk.open_margin), 0n);
   const openPositions = rows.reduce((a, r) => a + r.risk.open_positions, 0);
   const s = vault.data?.summary;
+  const liveN = rows.filter((r) => isLiveMarket(r.market.descriptor)).length;
   return (
     <>
       <Heading
@@ -95,6 +97,7 @@ export function MarketsPage() {
                         <div className="eventMeta">
                           {d.category_label} · {d.venue} · resolves {fmtDate(nsToMs(d.expected_resolution_ns))}
                         </div>
+                        <VenueChip d={d} mark={r.mark} policy={r.policy} compact />
                       </td>
                       <td>
                         {d.outcomes.map((o) => (
@@ -105,7 +108,6 @@ export function MarketsPage() {
                             {cents(midOf(r.mark, o.outcome_id))}
                           </div>
                         ))}
-                        {isSimulatedSource(r.mark?.report.source_chain) && <SimLabel text="mock venue" />}
                       </td>
                       <td>{r.mark ? usd(markDepthUsd(r.mark), 0) : "No mark"}</td>
                       <td>{lev ? levX(lev) : "n/a"}</td>
@@ -124,7 +126,7 @@ export function MarketsPage() {
           </div>
         )}
         <div className="footnote">
-          Prices on this deployment come from {app.stack.simulatedVenue ? "the labeled mock venue (simulated)" : "the configured venue adapters"}. Eligibility, leverage and restrictions are per-market, versioned policies read from the contract.
+          {liveN > 0 ? `${liveN} market${liveN === 1 ? "" : "s"} price from the live Polymarket CLOB (labeled Live Polymarket); the rest use the labeled mock venue (simulated). ` : "Prices on this deployment come from the labeled mock venue (simulated). "}Eligibility, leverage and restrictions are per-market, versioned policies read from the contract.
         </div>
       </div>
     </>

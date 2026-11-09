@@ -13,6 +13,7 @@ import { ActivityPage } from "./pages/Activity";
 import { RiskPage } from "./pages/Risk";
 import { AdminPage } from "./pages/Admin";
 import { SettingsPage } from "./pages/Settings";
+import { HedgingPage } from "./pages/Hedging";
 
 const NAV: Array<[string, Array<[string, string, string]>]> = [
   [
@@ -28,6 +29,7 @@ const NAV: Array<[string, Array<[string, string, string]>]> = [
     "Protocol",
     [
       ["vault", "◌", "Liquidity vault"],
+      ["hedging", "⇄", "Hedge executor"],
       ["stats", "▥", "Public statistics"],
       ["activity", "≡", "Activity"],
     ],
@@ -145,6 +147,8 @@ function Page({ page, arg }: { page: string; arg?: string }) {
       return <PortfolioPage />;
     case "vault":
       return <VaultPage />;
+    case "hedging":
+      return <HedgingPage />;
     case "stats":
       return <StatsPage />;
     case "activity":

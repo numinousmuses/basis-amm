@@ -8,6 +8,7 @@ import { big, cents, fmtDate, levX, nsToMs, ppmPct, signedUsd, units, usd } from
 import { Empty, ErrorBox, Heading, Loading, Metric, Modal, SumRow, Toggle, useTx } from "../components/ui";
 import { OrderTracker, type TrackedOrder } from "../components/OrderTracker";
 import { ClaimButton } from "../components/Claim";
+import { rampNote, rampStatus, rampText, shortPct } from "../lib/positions";
 
 export function PositionsPage() {
   const app = useApp();
@@ -84,6 +85,7 @@ function OpenTable({ rows, m, onManage }: { rows: PositionView[]; m: (id: string
             <th>Unrealized P&L</th>
             <th>Max payout</th>
             <th>Liq. price</th>
+            <th>Maintenance</th>
             <th>Fees accrued</th>
             <th>TP / SL</th>
             <th />
@@ -120,6 +122,12 @@ function OpenTable({ rows, m, onManage }: { rows: PositionView[]; m: (id: string
                 </td>
                 <td data-testid="position-max-payout">{usd(p.max_payout)}</td>
                 <td>{cents(p.liquidation_price)}</td>
+                <td style={{ maxWidth: 230 }} data-testid="position-maintenance">
+                  <b>{shortPct(p.effective_maintenance_bps ?? pos.maintenance_bps)}</b> <span className="muted">{rampNote(pos)}</span>
+                  <div className="eventMeta" data-testid="position-ramp">
+                    {rampText(pos)}
+                  </div>
+                </td>
                 <td>{usd(fees, 4)}</td>
                 <td className="muted">
                   {pos.take_profit_price ? cents(pos.take_profit_price) : "none"} / {pos.stop_loss_price ? cents(pos.stop_loss_price) : "none"}
@@ -149,6 +157,7 @@ function HistoryTable({ rows, m }: { rows: PositionView[]; m: (id: string) => Ma
             <th>Leverage</th>
             <th>Entry</th>
             <th>Margin</th>
+            <th>Closed</th>
             <th>Paid out</th>
             <th>Realized P&L</th>
           </tr>
@@ -172,6 +181,9 @@ function HistoryTable({ rows, m }: { rows: PositionView[]; m: (id: string) => Ma
                 <td>{levX(pos.terms.leverage)}</td>
                 <td>{cents(pos.terms.entry_price)}</td>
                 <td>{usd(pos.terms.margin)}</td>
+                <td className="muted" data-testid="history-closed">
+                  {pos.closed_ns ? fmtDate(nsToMs(pos.closed_ns)) : "n/a"}
+                </td>
                 <td data-testid="history-paid">{usd(pos.paid_out)}</td>
                 <td className={r >= 0n ? "green" : "red"}>{signedUsd(r)}</td>
               </tr>
@@ -276,11 +288,16 @@ function ManageModal({ p, market, onClose }: { p: PositionView; market?: Market;
         <SumRow k="Unrealized P&L (uncapped)" v={signedUsd(p.unrealized_pnl)} cls={big(p.unrealized_pnl) >= 0n ? "green" : "red"} />
         <SumRow k="Max profit / max payout on remaining exposure" v={`+${usd(p.max_profit)} / ${usd(p.max_payout)}`} cls="green" />
         <SumRow k="Liquidation price" v={cents(p.liquidation_price)} />
+        <SumRow k="Maintenance in force" v={rampStatus(p)} testId="manage-maintenance" />
         <SumRow k="Holding fees accrued" v={usd(big(pos.accrued_hold_fees) + big(p.pending_hold_fees), 4)} />
         <SumRow k="Open fee + risk premium paid" v={`${usd(pos.open_fee_paid)} + ${usd(pos.risk_premium_paid)}`} />
         <SumRow k="Fill fraction" v={ppmPct(pos.fill_fraction_ppm, 1)} />
         <SumRow k="Policy at open" v={`epoch ${pos.policy_epoch} · ${pos.policy_hash.slice(0, 12)}…`} />
         <SumRow k="Strategy" v={pos.mode} />
+        {pos.closed_ns && <SumRow k="Closed" v={fmtDate(nsToMs(pos.closed_ns))} />}
+      </div>
+      <div className="muted" style={{ fontSize: 11, marginTop: -8, marginBottom: 8 }} data-testid="manage-ramp">
+        {rampText(pos)} The ramp only applies while the position is losing; a position in profit is never liquidated by it.
       </div>
       {isOpen && (
         <>

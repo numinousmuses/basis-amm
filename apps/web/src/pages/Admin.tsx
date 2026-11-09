@@ -5,15 +5,20 @@ import { useApp, useLive } from "../lib/app";
 import { usePoll } from "../lib/hooks";
 import { cents, fmtDate, levX, midOf, nsToMs, shortHash, usd } from "../lib/format";
 import { Empty, ErrorBox, Heading, Line, Loading, StateChip, Toggle, useTx } from "../components/ui";
+import { VenueChip } from "../components/Venue";
+import { AdmitLive } from "../components/AdmitLive";
 
-const TABS = ["Markets", "Governance", "Guardian", "Oracles & adapters", "Manifests", "Mock venue"] as const;
+const TABS = ["Markets", "Governance", "Guardian", "Oracles & adapters", "Manifests", "Live Polymarket", "Mock venue"] as const;
+/** Tabs that call /api/dev routes; hidden when basis-node runs without dev controls. */
+const DEV_TABS: ReadonlyArray<Tab> = ["Live Polymarket"];
 type Tab = (typeof TABS)[number];
 
 const slug = (t: string) => t.split(" ")[0].toLowerCase();
 
 export function AdminPage({ tab: initial }: { tab?: string }) {
   const app = useApp();
-  const [tab, setTab] = useState<Tab>(() => TABS.find((t) => slug(t) === initial) ?? "Markets");
+  const tabs = TABS.filter((t) => app.stack.devControls || !DEV_TABS.includes(t));
+  const [tab, setTab] = useState<Tab>(() => tabs.find((t) => slug(t) === initial) ?? "Markets");
   const markets = usePoll(() => api.markets(), [], 6000, app.version);
   useLive((m) => m.type === "event" && ["guardian", "market_state", "restrictions_lifted", "policy_activated", "policy_proposed", "resolution_vote", "resolution_finalized", "settled"].includes(m.kind) && void markets.reload());
   const roles = app.roleOf(app.accountId);
@@ -37,7 +42,7 @@ export function AdminPage({ tab: initial }: { tab?: string }) {
         )}
       </div>
       <div className="subnav">
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <button key={t} className={tab === t ? "active" : ""} onClick={() => setTab(t)} data-testid={`admin-tab-${slug(t)}`}>
             {t}
           </button>
@@ -50,6 +55,7 @@ export function AdminPage({ tab: initial }: { tab?: string }) {
       {tab === "Guardian" && <GuardianSwitches />}
       {tab === "Oracles & adapters" && <Oracles />}
       {tab === "Manifests" && <Manifests />}
+      {markets.data && tab === "Live Polymarket" && app.stack.devControls && <AdmitLive rows={markets.data} onAdmitted={() => void markets.reload()} />}
       {markets.data && tab === "Mock venue" && <MockVenue rows={markets.data} />}
     </>
   );
@@ -97,6 +103,7 @@ function MarketsAdmin({ rows }: { rows: MarketRow[] }) {
                     <div className="eventMeta">
                       {d.category_label} · {d.venue} · {id}
                     </div>
+                    <VenueChip d={d} mark={r.mark} policy={r.policy} compact />
                   </td>
                   <td className="code">
                     {r.policy?.executor_adapter_id}
@@ -279,7 +286,9 @@ function Oracles() {
                 {[r.can_mark && "marks", r.can_resolve && "resolution"].filter(Boolean).join(" + ")} · attestation {r.attestation_measurement || "none"}
               </div>
             </div>
-            <span className={`chip ${r.active ? "on" : "warn"}`}>{r.active ? "Active" : "Inactive"}</span>
+            <span style={{ whiteSpace: "nowrap" }}>
+              <span className={`chip ${r.tee_attested ? "on" : "warn"}`}>{r.tee_attested ? "TEE attested" : "Unattested"}</span> <span className={`chip ${r.active ? "on" : "warn"}`}>{r.active ? "Active" : "Inactive"}</span>
+            </span>
           </div>
         ))}
         <div className="callout">Reporters sign borsh-encoded reports with ed25519; the contract verifies every signature. Dev reporters on this deployment are unattested and labeled as such.</div>

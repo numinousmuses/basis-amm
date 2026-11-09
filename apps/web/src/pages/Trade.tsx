@@ -12,6 +12,10 @@ import { Empty, ErrorBox, Heading, LineChart, Loading, Modal, SimLabel, StateChi
 import { RulesSheet, STRATEGY_TEXT } from "../components/RulesSheet";
 import { OrderTracker, type TrackedOrder } from "../components/OrderTracker";
 import { FaucetButton } from "../components/Faucet";
+import { ResolutionPanel } from "../components/Resolution";
+import { VenueChip } from "../components/Venue";
+import { isLiveMarket } from "../lib/live";
+import { shortPct } from "../lib/positions";
 
 const PERIODS: Array<[string, number]> = [
   ["15M", 15 * 60_000],
@@ -56,6 +60,7 @@ function TradeMarket({ id, markets }: { id: string; markets: MarketRow[] }) {
   const book = d.mark?.report.outcomes.find((o) => o.outcome_id === outcome);
   const markAgeMs = d.mark ? Date.now() - nsToMs(d.mark.report.source_timestamp_ns) : null;
   const closeOnly = d.actions.reasons.some((r) => r.includes("CLOSE_ONLY"));
+  const isLive = isLiveMarket(desc);
   return (
     <>
       <Heading
@@ -97,7 +102,7 @@ function TradeMarket({ id, markets }: { id: string; markets: MarketRow[] }) {
                 </span>
               ))}
               <StateChip state={d.market.state} open={d.actions.open} closeOnly={closeOnly} />
-              {isSimulatedSource(d.mark?.report.source_chain) && <SimLabel text={`Simulated: ${d.mark?.report.source_chain}`} />}
+              {isLive ? <VenueChip d={desc} mark={d.mark} policy={d.policy} /> : isSimulatedSource(d.mark?.report.source_chain) && <SimLabel text={`Simulated: ${d.mark?.report.source_chain}`} />}
             </div>
             <div className="muted" style={{ fontSize: 11, marginBottom: 8 }}>
               {d.mark ? (
@@ -118,9 +123,14 @@ function TradeMarket({ id, markets }: { id: string; markets: MarketRow[] }) {
             </div>
           </div>
           <div className="surface" style={{ marginTop: 18 }}>
-            <div className="surfaceTitle">Order book depth · {desc.outcomes[outcome]?.label}</div>
+            <div className="surfaceTitle" data-testid="book-title">
+              {isLive ? "Live Polymarket book" : "Order book depth"} · {desc.outcomes[outcome]?.label}
+            </div>
             {book ? <Depth bids={book.bids} asks={book.asks} /> : <Empty>No book in the latest mark.</Empty>}
-            <div className="footnote">Depth from the latest signed mark report. Your fill walks the asks; exits walk the bids.</div>
+            <div className="footnote">
+              Depth from the latest signed mark report{d.mark ? <> (source <span className="code">{d.mark.report.source_chain}</span>)</> : null}. Your fill walks the asks; exits walk the bids.
+              {isLive && " Levels are the real Polymarket CLOB book at the time the oracle signed the mark."}
+            </div>
           </div>
           <div className="surface" style={{ marginTop: 18 }}>
             <div className="surfaceTitle">How this market trades</div>
@@ -142,6 +152,7 @@ function TradeMarket({ id, markets }: { id: string; markets: MarketRow[] }) {
               {d.policy ? STRATEGY_TEXT[d.policy.strategy] : ""} Final settlement follows {desc.resolution_source}. There is no forced +100% take-profit: equity keeps its full upside until you close, a trigger you set fires, it is liquidated, or the event resolves.
             </div>
           </div>
+          <ResolutionPanel market={d.market} policy={d.policy} resolution={d.resolution} />
           <MarketPositions marketId={id} />
         </div>
         <div>
@@ -165,7 +176,7 @@ function TradeMarket({ id, markets }: { id: string; markets: MarketRow[] }) {
           </div>
         </Modal>
       )}
-      {app.stack.simulatedVenue && <div className="footnote">Mock venue: marks are deterministic simulated prices labeled {d.mark?.report.source_chain ?? "mock-venue"}; no real market is traded.</div>}
+      {isSimulatedSource(d.mark?.report.source_chain) && <div className="footnote">Mock venue: marks are deterministic simulated prices labeled {d.mark?.report.source_chain ?? "mock-venue"}; no real market is traded.</div>}
     </>
   );
 }
@@ -336,6 +347,9 @@ function Composer({ row, outcome, setOutcome, protocolMax, openRules }: { row: M
   }
 
   const canSubmit = !!app.client && !!pv && margin > 0n && row.actions.open && !submitting;
+  const rampClosed = !row.actions.open && row.actions.reasons.some((r) => r.startsWith("PRE_RESOLUTION_RAMP"));
+  const otherReasons = row.actions.reasons.filter((r) => !r.startsWith("PRE_RESOLUTION_RAMP"));
+  const rampStartMs = nsToMs(big(desc.expected_resolution_ns) - big(policy.maintenance_ramp_ns));
   return (
     <>
       <div className="surface" data-testid="composer">
@@ -445,9 +459,9 @@ function Composer({ row, outcome, setOutcome, protocolMax, openRules }: { row: M
         <div className="warnBox" data-testid="jump-warning">
           Jump risk: prediction-market prices can gap several cents at once, past your liquidation price. Liquidation is not guaranteed at the estimated price. Your loss is still capped at your margin.
         </div>
-        {reasons.length > 0 && (
+        {reasons.filter((r) => !(rampClosed && r.startsWith("PRE_RESOLUTION_RAMP"))).length > 0 && (
           <div className="warnBox" data-testid="quote-reasons">
-            {reasons.map((r, i) => (
+            {reasons.filter((r) => !(rampClosed && r.startsWith("PRE_RESOLUTION_RAMP"))).map((r, i) => (
               <div key={i}>
                 <b>{explainError(r).title}.</b> {explainReason(r)}
               </div>
@@ -460,9 +474,18 @@ function Composer({ row, outcome, setOutcome, protocolMax, openRules }: { row: M
             Your fee cap ({usd(maxFee)}) is below the quoted upfront fee ({usd(upfront)}). The contract will likely reject this order with FAIR_VALUE.
           </div>
         )}
-        {!row.actions.open && (
+        {rampClosed && (
+          <div className="errorBox" data-testid="ramp-closed" data-code="PRE_RESOLUTION_RAMP">
+            <b>{explainError("PRE_RESOLUTION_RAMP").title}</b>
+            <div>
+              No new positions since {fmtDate(rampStartMs)}: maintenance for losing positions rises from {shortPct(policy.maintenance_bps)} to {shortPct(policy.pre_resolution_maintenance_bps)} between then and expected resolution on {fmtDate(nsToMs(desc.expected_resolution_ns))}. A fresh position would start underwater by the spread and the ramp could liquidate it at once.
+            </div>
+            <div style={{ marginTop: 6 }}>Existing positions can still be closed, topped up and settled.</div>
+          </div>
+        )}
+        {!row.actions.open && otherReasons.length > 0 && (
           <div className="warnBox">
-            New positions are not accepted: {row.actions.reasons.map((r) => explainReason(r)).join(" ")}
+            New positions are not accepted: {otherReasons.map((r) => explainReason(r)).join(" ")}
           </div>
         )}
         <div className="rangeLabels" style={{ marginTop: 14 }}>
@@ -484,7 +507,7 @@ function Composer({ row, outcome, setOutcome, protocolMax, openRules }: { row: M
           </div>
         ) : null}
         <button style={{ width: "100%", marginTop: 15 }} className="primary" disabled={!canSubmit || balance < escrow || expiresIn === 0} onClick={() => (prefs.confirmBeforeOpen ? setConfirm(true) : void submit())} data-testid="review-order">
-          Review {desc.outcomes[outcome]?.label} order
+          {rampClosed ? "Opens closed before resolution" : `Review ${desc.outcomes[outcome]?.label} order`}
         </button>
         <div className="footnote" style={{ lineHeight: 1.6 }}>
           Test funds only. Execution needs a fresh mark observed after your commit, the current policy hash, and vault capacity. Indicative values above come from the contract's <span className="code">preview_open</span>; executed values come from the contract after execution.

@@ -131,12 +131,12 @@ export function SumRow({ k, v, cls, testId }: { k: ReactNode; v: ReactNode; cls?
 }
 
 /** SVG line/area chart. `series` values are plain numbers already scaled for display. */
-export function LineChart({ series, color = "#333", height = 230, label, sub, yFormat }: { series: Array<{ x: number; y: number }>; color?: string; height?: number; label?: ReactNode; sub?: ReactNode; yFormat?: (y: number) => string }) {
+export function LineChart({ series, color = "#333", height = 230, label, sub, yFormat, zeroLine, testId = "line-chart", emptyText = "Not enough history yet" }: { series: Array<{ x: number; y: number }>; color?: string; height?: number; label?: ReactNode; sub?: ReactNode; yFormat?: (y: number) => string; zeroLine?: boolean; testId?: string; emptyText?: string }) {
   if (series.length < 2)
     return (
       <div className="chart" style={{ height, alignItems: "center", justifyContent: "center" }}>
         <span className="muted" style={{ fontSize: 12, width: "100%", textAlign: "center" }}>
-          Not enough history yet
+          {emptyText}
         </span>
       </div>
     );
@@ -160,7 +160,7 @@ export function LineChart({ series, color = "#333", height = 230, label, sub, yF
   const pts = series.map((p) => `${px(p.x).toFixed(1)},${py(p.y).toFixed(1)}`).join(" ");
   const id = `g${color.replace("#", "")}`;
   return (
-    <div className="chart" style={{ height }} data-testid="line-chart">
+    <div className="chart" style={{ height }} data-testid={testId}>
       {label && (
         <div className="chartLabel">
           {label}
@@ -175,6 +175,7 @@ export function LineChart({ series, color = "#333", height = 230, label, sub, yF
           </linearGradient>
         </defs>
         <polygon points={`0,${H} ${pts} ${W},${H}`} fill={`url(#${id})`} />
+        {zeroLine && y0 < 0 && y1 > 0 && <line x1="0" x2={W} y1={py(0)} y2={py(0)} stroke="#b9b9b5" strokeDasharray="4 4" strokeWidth="1" vectorEffect="non-scaling-stroke" />}
         <polyline points={pts} stroke={color} strokeWidth="2.4" fill="none" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
       </svg>
       {yFormat && (

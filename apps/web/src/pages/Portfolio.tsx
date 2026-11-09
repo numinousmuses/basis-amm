@@ -1,8 +1,9 @@
 import { navigate, useApp } from "../lib/app";
 import { useAccount } from "../lib/account";
 import { usePoll } from "../lib/hooks";
-import { big, ratioPct, signedUsd, units, usd } from "../lib/format";
-import { Bar, Empty, ErrorBox, Heading, Loading, Metric } from "../components/ui";
+import { big, fmtDate, ratioPct, signedUsd, units, usd } from "../lib/format";
+import { realizedPnlSeries } from "../lib/positions";
+import { Bar, Empty, ErrorBox, Heading, LineChart, Loading, Metric } from "../components/ui";
 import { FaucetButton } from "../components/Faucet";
 import { ClaimButton } from "../components/Claim";
 
@@ -26,6 +27,7 @@ export function PortfolioPage() {
   const equity = open.reduce((s, p) => s + big(p.equity_at_bid), 0n);
   const upnl = open.reduce((s, p) => s + big(p.unrealized_pnl), 0n);
   const realized = done.reduce((s, p) => s + big(p.position.realized_pnl), 0n);
+  const pnl = realizedPnlSeries(done);
   const price = big(vault.data?.share_price ?? "1000000");
   const blpValue = (big(a.blp) * price) / 1_000_000n;
   const wallet = big(a.usdc);
@@ -55,15 +57,24 @@ export function PortfolioPage() {
           <div className="muted" style={{ fontSize: 12, marginBottom: 14 }}>
             Realized {signedUsd(realized)} on {done.length} closed position{done.length === 1 ? "" : "s"} · unrealized {signedUsd(upnl)} at the executable bid
           </div>
-          {done.length === 0 && open.length === 0 && <Empty>No trading history yet.</Empty>}
-          {[...done].reverse().slice(0, 8).map((p) => (
-            <div className="configLine" key={p.position.position_id}>
-              <span className="key">
-                #{p.position.position_id} {p.position.market_id} · {p.position.state}
-              </span>
-              <b className={big(p.position.realized_pnl) >= 0n ? "green" : "red"}>{signedUsd(p.position.realized_pnl)}</b>
+          <LineChart
+            series={pnl.points.map((pt) => ({ x: pt.x, y: Number(pt.y) / 1e6 }))}
+            color={pnl.total >= 0n ? "#197856" : "#bf514b"}
+            height={210}
+            yFormat={(y) => `${y < 0 ? "-" : ""}$${Math.abs(y).toFixed(2)}`}
+            zeroLine
+            testId="pnl-chart"
+            emptyText={done.length ? "One closed position so far" : "No closed positions yet"}
+            label={<span className={pnl.total >= 0n ? "green" : "red"} style={{ fontSize: 15 }}>{signedUsd(pnl.total)}</span>}
+            sub="Cumulative realized P&L by close time"
+          />
+          {pnl.points.length > 0 && (
+            <div className="rangeLabels" style={{ marginTop: 6 }}>
+              <span>{fmtDate(pnl.points[0].x)}</span>
+              <span>{fmtDate(pnl.points[pnl.points.length - 1].x)}</span>
             </div>
-          ))}
+          )}
+          {pnl.skipped > 0 && <div className="muted" style={{ fontSize: 11, marginTop: 6 }}>{pnl.skipped} closed position(s) have no close time recorded and are left out of the chart.</div>}
           <button className="link" style={{ marginTop: 10 }} onClick={() => navigate("positions")}>
             All positions ↗
           </button>
