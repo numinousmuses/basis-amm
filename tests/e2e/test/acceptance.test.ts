@@ -29,6 +29,7 @@ import {
   TESTNET_RPC,
   deployStack,
   loadExampleManifests,
+  specFixtureManifests,
   loadLegacyCredential,
   loadManifest,
   startSandbox,
@@ -68,7 +69,7 @@ beforeAll(async () => {
       network: "testnet",
       rpcUrl: TESTNET_RPC,
       master,
-      manifests: Object.values(loadExampleManifests()),
+      manifests: specFixtureManifests(),
       config: testnetConfig(),
       nearPerAccount: TESTNET_BUDGET,
       userUsd: 20_000n,
@@ -84,7 +85,7 @@ beforeAll(async () => {
       network: "sandbox",
       rpcUrl: sb.rpcUrl,
       master: { accountId: sb.rootAccountId, secretKey: sb.rootSecretKey },
-      manifests: Object.values(loadExampleManifests()),
+      manifests: specFixtureManifests(),
     });
   }
   x = new Ctx(stack);
@@ -154,13 +155,13 @@ describe("spec 11 E2E acceptance", () => {
     const pv = await x.c.anon.previewOpen(FED, 0, 500n * D, LEV(5));
     expect(pv.max_profit).toBe((2_500n * D).toString());
     expect(BigInt(pv.admissible_fill_ppm)).toBeLessThan(1_000_000n);
-    const off = await x.open("bob", { market: FED, margin: 500n * D, lev: LEV(5), partial: false, maxFee: 60n * D });
+    const off = await x.open("bob", { market: FED, margin: 500n * D, lev: LEV(5), partial: false, maxFee: 600n * D });
     expect(off.result).toContain("PARTIAL_FILL");
     expect(await x.balance("bob")).toBe(bobBefore); // full refund, nothing charged
     x.record("8. all-or-none rejected + refunded", off.exec);
 
     const aliceBefore = await x.balance("alice");
-    const on = await x.open("alice", { market: FED, margin: 500n * D, lev: LEV(5), partial: true, minFillPpm: 250_000n, maxFee: 60n * D });
+    const on = await x.open("alice", { market: FED, margin: 500n * D, lev: LEV(5), partial: true, minFillPpm: 250_000n, maxFee: 600n * D });
     x.record("8/12. partial fill (default ON) executed", on.exec);
     assert(on.positionId, on.result);
     const p = await x.position(on.positionId);
@@ -185,7 +186,7 @@ describe("spec 11 E2E acceptance", () => {
     const v0 = await x.vault();
     const r0 = await x.c.anon.getRiskSummary(BTC);
     const aliceBefore = await x.balance("alice");
-    const o = await x.open("alice", { market: BTC, margin: 100n * D, lev: LEV(5), maxFee: 15n * D });
+    const o = await x.open("alice", { market: BTC, margin: 100n * D, lev: LEV(5), maxFee: 150n * D });
     x.record("3. open 5x YES POOL_ONLY $100 @0.50", o.exec);
     assert(o.positionId, o.result);
     aliceBtc = o.positionId;
@@ -204,7 +205,8 @@ describe("spec 11 E2E acceptance", () => {
     // Fee accounting: open fee 0.10% of notional + fair-value premium (5% of hold-to-resolution EV).
     const t = openTerms(100n * D, LEV(5), P(0.5));
     const probs = impliedProbabilities([P(0.495), P(0.505)]);
-    const premium = requiredRiskPremium(holdToResolutionEv(t, [1_000_000n, 0n], probs), 500n);
+    const btcPolicy = (await x.c.anon.getPolicy((await x.c.anon.getMarket(BTC))!.policy_hash))!;
+    const premium = requiredRiskPremium(holdToResolutionEv(t, [1_000_000n, 0n], probs), BigInt(btcPolicy.fees.floor_coverage_bps));
     expect(p.position.open_fee_paid).toBe(openFee(t.notional, 10n).toString());
     expect(p.position.risk_premium_paid).toBe(premium.toString());
     expect(aliceBefore - (await x.balance("alice"))).toBe(100n * D + openFee(t.notional, 10n) + premium);
@@ -233,8 +235,8 @@ describe("spec 11 E2E acceptance", () => {
 
     // Bob and Carol open at $0.50 (re-set the book), Bob with a stop at $0.45.
     x.venue.set(BTC, { mids: [], books: yesBook(0.49, 0.5) });
-    const bob = await x.open("bob", { market: BTC, margin: 100n * D, lev: LEV(5), maxFee: 15n * D, sl: P(0.45) });
-    const carol = await x.open("carol", { market: BTC, margin: 200n * D, lev: LEV(5), maxFee: 30n * D });
+    const bob = await x.open("bob", { market: BTC, margin: 100n * D, lev: LEV(5), maxFee: 150n * D, sl: P(0.45) });
+    const carol = await x.open("carol", { market: BTC, margin: 200n * D, lev: LEV(5), maxFee: 300n * D });
     assert(bob.positionId && carol.positionId);
 
     // $0.60: Carol closes 50%, keeps the rest with a take-profit at $0.65.
@@ -271,7 +273,7 @@ describe("spec 11 E2E acceptance", () => {
     expect(bobGot).toBeLessThanOrEqual(40n * D);
 
     // Early full close by request at $0.44 for a fresh 2x position.
-    const e = await x.open("bob", { market: BTC, margin: 50n * D, lev: LEV(2), maxFee: 5n * D });
+    const e = await x.open("bob", { market: BTC, margin: 50n * D, lev: LEV(2), maxFee: 50n * D });
     assert(e.positionId, e.result);
     const full = await x.close("bob", e.positionId);
     expect(full.result).toBe(`CLOSED:${e.positionId}:full`);
@@ -282,10 +284,10 @@ describe("spec 11 E2E acceptance", () => {
   it("4b/10. liquidation of losing positions: positive residual pays keeper + user; gap to $0 survives as accounted loss; failed reward transfer stays claimable", async () => {
     // Book at $0.45 ask. 5x would breach the tick-sensitivity ceiling p0/(k*tick) = 4.5x, so 4x.
     x.venue.set(BTC, { mids: [], books: yesBook(0.44, 0.45) });
-    const tooHigh = await x.open("bob", { market: BTC, margin: 100n * D, lev: LEV(5), maxFee: 15n * D });
+    const tooHigh = await x.open("bob", { market: BTC, margin: 100n * D, lev: LEV(5), maxFee: 150n * D });
     expect(tooHigh.result).toContain("tick-sensitivity ceiling");
-    const b = await x.open("bob", { market: BTC, margin: 100n * D, lev: LEV(4), maxFee: 15n * D });
-    const c = await x.open("carol", { market: BTC, margin: 100n * D, lev: LEV(4), maxFee: 15n * D });
+    const b = await x.open("bob", { market: BTC, margin: 100n * D, lev: LEV(4), maxFee: 150n * D });
+    const c = await x.open("carol", { market: BTC, margin: 100n * D, lev: LEV(4), maxFee: 150n * D });
     assert(b.positionId, b.result);
     assert(c.positionId, c.result);
     // Q = 888.9 units; liquidation bid = (300 + 1) / (888.9 * 0.95) = $0.356.
@@ -331,8 +333,8 @@ describe("spec 11 E2E acceptance", () => {
   let solYes = "";
   let solNo = "";
   it("6. opposing YES/NO user orders fill separately against the vault (no internal matching); combined stress is scenario-aggregated", async () => {
-    const a = await x.open("alice", { market: SOL, outcome: 0, margin: 100n * D, lev: LEV(5), maxFee: 15n * D });
-    const b = await x.open("bob", { market: SOL, outcome: 1, margin: 100n * D, lev: LEV(5), maxFee: 15n * D });
+    const a = await x.open("alice", { market: SOL, outcome: 0, margin: 100n * D, lev: LEV(5), maxFee: 150n * D });
+    const b = await x.open("bob", { market: SOL, outcome: 1, margin: 100n * D, lev: LEV(5), maxFee: 150n * D });
     x.record("6. YES fill vs vault", a.exec);
     x.record("6. NO fill vs vault (separate)", b.exec);
     assert(a.positionId && b.positionId);
@@ -391,7 +393,7 @@ describe("spec 11 E2E acceptance", () => {
   });
 
   it("5b. exact-share hedge contrast: removes winning-state loss but creates $400 adverse-state loss; invalid market pays 0.50", async () => {
-    const c = await x.open("carol", { market: ELECTION, margin: 100n * D, lev: LEV(5), maxFee: 15n * D });
+    const c = await x.open("carol", { market: ELECTION, margin: 100n * D, lev: LEV(5), maxFee: 150n * D });
     assert(c.positionId, c.result);
     let r = await x.c.anon.getRiskSummary(ELECTION);
     expect(r.stress_loss).toBe((500n * D).toString());
@@ -474,7 +476,7 @@ describe("spec 11 E2E acceptance", () => {
     });
 
     // Full hedge.
-    const o = await x.open("bob", { market: ETH, margin: 100n * D, lev: LEV(5), maxFee: 15n * D });
+    const o = await x.open("bob", { market: ETH, margin: 100n * D, lev: LEV(5), maxFee: 150n * D });
     expect(o.result).toBe(`RISK_RESERVED:${o.orderId}`);
     expect((await x.c.anon.getOrder(o.orderId))!.state).toBe("RiskReserved");
     expect((await x.c.anon.getPositionsByOwner(x.id("bob"))).some((p) => p.position.market_id === ETH)).toBe(false);
@@ -496,7 +498,7 @@ describe("spec 11 E2E acceptance", () => {
 
     // Partial hedge (60%) with partial fills ON: position scaled to 60%, rest refunded.
     const carolBefore = await x.balance("carol");
-    const q = await x.open("carol", { market: ETH, margin: 100n * D, lev: LEV(5), maxFee: 15n * D, minFillPpm: 500_000n });
+    const q = await x.open("carol", { market: ETH, margin: 100n * D, lev: LEV(5), maxFee: 150n * D, minFillPpm: 500_000n });
     await x.c.executor.commitHedge(q.orderId);
     await x.c.executor.submitHedgeFill(receipt(q.orderId, 600n * D, 1));
     const f2 = await x.c.keeper.finalizeOpenHedged(q.orderId);
@@ -509,7 +511,7 @@ describe("spec 11 E2E acceptance", () => {
 
     // All-or-none with a partial venue fill: rejected, full refund, inventory stays vault-owned.
     const aliceBefore = await x.balance("alice");
-    const z = await x.open("alice", { market: ETH, margin: 100n * D, lev: LEV(5), maxFee: 15n * D, partial: false });
+    const z = await x.open("alice", { market: ETH, margin: 100n * D, lev: LEV(5), maxFee: 150n * D, partial: false });
     await x.c.executor.commitHedge(z.orderId);
     await x.c.executor.submitHedgeFill(receipt(z.orderId, 500n * D, 1));
     const f3 = await x.c.keeper.finalizeOpenHedged(z.orderId);
@@ -553,11 +555,11 @@ describe("spec 11 E2E acceptance", () => {
 
     // NBA: alice opens under policy epoch 1.
     await x.pushMarks();
-    const a = await x.open("alice", { market: NBA, margin: 100n * D, lev: LEV(3), maxFee: 15n * D });
+    const a = await x.open("alice", { market: NBA, margin: 100n * D, lev: LEV(3), maxFee: 150n * D });
     assert(a.positionId, a.result);
     const oldHash = (await x.position(a.positionId)).position.policy_hash;
     // Bob's order is in flight when the policy changes.
-    const inflight = await x.request("bob", { market: NBA, margin: 100n * D, lev: LEV(3), maxFee: 15n * D });
+    const inflight = await x.request("bob", { market: NBA, margin: 100n * D, lev: LEV(3), maxFee: 150n * D });
     const nba = manifestToChain(loadExampleManifests()[NBA]);
     nba.policy.event_windows = [{ label: "Catalyst: injury report", start_ns: (nowNs() - 1_000_000_000n).toString(), end_ns: (nowNs() + 3_600_000_000_000n).toString(), mode: "CloseOnly" }];
     nba.policy.fees.open_bps = 20;
@@ -604,7 +606,7 @@ describe("spec 11 E2E acceptance", () => {
     await expectFailure(x.c.keeper.pushMark(stale), "PRICE_STALE");
     // Order commit then a mark observed BEFORE the commit: refused (anti last-look).
     const early = x.venue.mark(GOLD, nowNs() - 2_000_000_000n);
-    const req = await x.request("bob", { market: GOLD, margin: 50n * D, lev: LEV(2), maxFee: 5n * D });
+    const req = await x.request("bob", { market: GOLD, margin: 50n * D, lev: LEV(2), maxFee: 50n * D });
     await expectFailure(x.c.keeper.executeOpen(req.orderId, early), "precedes order commit");
     // Replay of an older-than-stored mark is refused.
     await x.c.keeper.pushMark(x.venue.mark(GOLD));
@@ -642,7 +644,7 @@ describe("spec 11 E2E acceptance", () => {
     await x.c.admin.liftRestrictions(null);
     // Stale mark: a report older than the policy staleness cannot execute an order.
     await x.pushMarks();
-    const req = await x.request("bob", { market: GOLD, margin: 50n * D, lev: LEV(2), maxFee: 5n * D });
+    const req = await x.request("bob", { market: GOLD, margin: 50n * D, lev: LEV(2), maxFee: 50n * D });
     const old = markReport({ marketId: GOLD, books: x.venue.books(GOLD), sourceTsNs: nowNs() - 130_000_000_000n, validForNs: 3_600_000_000_000n });
     await expectFailure(x.c.keeper.executeOpen(req.orderId, x.venue.reporter.sign(x.stack.contractId, old)), "PRICE_STALE");
     await x.c.bob.cancelOpen(req.orderId);
@@ -667,10 +669,11 @@ describe("spec 11 E2E acceptance", () => {
     x.record("11. naive $0.80 5x quote rejected FAIR_VALUE", naive.exec);
     // Reprice: highest leverage whose required premium fits the same budget, using the SDK mirror.
     const { openTerms: ot, holdToResolutionEv: ev, requiredRiskPremium: rp, openFee: of } = await import("@basis/sdk");
+    const goldCov = BigInt((await x.c.anon.getPolicy((await x.c.anon.getMarket(GOLD))!.policy_hash))!.fees.floor_coverage_bps);
     let best = 0n;
     for (let l = 10_000n; l <= 50_000n; l += 1_000n) {
       const t = ot(100n * D, l, P(0.8));
-      const prem = rp(ev(t, [1_000_000n, 0n], [800_000n, 200_000n]), 500n);
+      const prem = rp(ev(t, [1_000_000n, 0n], [800_000n, 200_000n]), goldCov);
       if (prem + of(t.notional, 10n) <= 2n * D) best = l;
     }
     expect(best).toBeGreaterThan(10_000n);
@@ -688,7 +691,7 @@ describe("spec 11 E2E acceptance", () => {
     expect(await r(FED, 2, 100n * D, 5)).toBe(4_500n * D); // HIKE @ $0.10: 5x -> Q=5000, max profit $4,500
     // Shallow manipulated book: a 10-unit ask at a manipulated price cannot carry a $500 notional.
     x.venue.set(GOLD, { mids: [], books: [{ outcome_id: 0, bids: [lvl(0.79, 10)], asks: [lvl(0.8, 10)] }, book(1, 0.2, 0.2)] });
-    const thin = await x.open("bob", { market: GOLD, margin: 100n * D, lev: LEV(5), maxFee: 10n * D });
+    const thin = await x.open("bob", { market: GOLD, margin: 100n * D, lev: LEV(5), maxFee: 100n * D });
     expect(thin.result).toMatch(/PARTIAL_FILL|RISK_LIMIT/);
     // Wide manipulated spread is refused at the oracle guard.
     x.venue.set(GOLD, { mids: [], books: [book(0, 0.3, 0.8), book(1, 0.2, 0.7)] });
@@ -718,11 +721,11 @@ describe("spec 11 E2E acceptance", () => {
     expect(got).toBeLessThanOrEqual((1_000n * D * price) / 1_000_000n + 1_000n);
     expect(got).toBeGreaterThan((1_000n * D * price) / 1_000_000n - 1_000_000n);
     // Only keepers execute orders (anti last-look selection by the user).
-    const req = await x.request("bob", { market: GOLD, margin: 50n * D, lev: LEV(2), maxFee: 5n * D });
+    const req = await x.request("bob", { market: GOLD, margin: 50n * D, lev: LEV(2), maxFee: 50n * D });
     await expectFailure(x.c.bob.executeOpen(req.orderId, x.venue.mark(GOLD)), "UNAUTHORIZED");
     await x.c.bob.cancelOpen(req.orderId);
     // Nonce replay.
-    const intent = await x.intent({ market: GOLD, margin: 50n * D, lev: LEV(2), maxFee: 5n * D });
+    const intent = await x.intent({ market: GOLD, margin: 50n * D, lev: LEV(2), maxFee: 50n * D });
     await x.c.bob.requestOpen(intent);
     await expectFailure(x.c.bob.requestOpen(intent), "NONCE_REUSED");
     // Missing partial-fill field must not silently opt in (legacy client).

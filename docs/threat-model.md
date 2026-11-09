@@ -17,8 +17,10 @@ strong as them.
 | Executor | hold hedge budget, post fill receipts | exceed the reserved size, signed slippage, custody budget or policy hedge budget |
 
 The executor and the reporters are trusted operators. A compromised mark key can push any price
-inside the spread and freshness guards; mitigations are second-source checks and TEE attestation
-(not implemented, see deviations). A compromised executor can lie about Polygon fills; the
+inside the spread and freshness guards. With `require_attested_marks`, mark keys exist only inside
+the TEE oracle program on OutLayer TDX workers, which also refuses to sign when a second source
+disagrees (`docs/tee-oracle.md`); the residual trust is in OutLayer's worker attestation and in the
+venue data itself. A compromised executor can lie about Polygon fills; the
 reconciler and `write_off_hedge` limit the damage to the hedge budget, and synthetic claims never
 depend on hedge proceeds because the payout reserve gives hedges no credit.
 
@@ -27,6 +29,8 @@ depend on hedge proceeds because the payout reserve gives hedges no credit.
 | Attack | Control | Test |
 |---|---|---|
 | Forged or tampered mark | ed25519 over a domain-separated digest of the Borsh report | acceptance 9 |
+| Mark key used outside the TEE | key derived from a TEE-generated PROTECTED secret bound to the WASM hash; only attested keys accepted when required; admin cannot self-declare attestation | tee.test.ts |
+| Single-source price manipulation | TEE program cross-checks CLOB book mid against Gamma prices before signing | oracle-tee tests |
 | Stale mark / replay of an older mark | policy staleness, `valid_until`, monotonic source time | acceptance 9, 10 |
 | Last look (mark chosen after seeing the order) | execution needs a mark observed after the commit; execution is keeper-only | acceptance 9, adversarial |
 | Thin-book or wide-spread manipulation | depth walk for the real size, exit-depth guard, absolute spread guard | acceptance 12 |

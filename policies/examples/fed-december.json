@@ -22,7 +22,7 @@
     "expected_resolution": "now+3456000"
   },
   "policy": {
-    "max_leverage": "5",
+    "max_leverage": "3",
     "event_windows": [
       {
         "label": "FOMC statement release",
@@ -31,6 +31,9 @@
         "mode": "CloseOnly"
       }
     ],
-    "human_readable_rules": "Three mutually exclusive outcomes priced from their exact payout vector. CLOSE_ONLY around the FOMC statement release."
+    "human_readable_rules": "Three mutually exclusive outcomes priced from their exact payout vector. Max 3x. CLOSE_ONLY around the FOMC statement release. The risk premium covers 55% of the hold-to-resolution floor value.",
+    "fees": {
+      "floor_coverage_bps": 5500
+    }
   }
 }

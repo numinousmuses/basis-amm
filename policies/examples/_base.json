@@ -1,5 +1,5 @@
 {
-  "_comment": "PROVISIONAL testnet values pending Joshua's section 14 decisions. Every number here is data, not contract code.",
+  "_comment": "DECIDED 2026-11-09 (implementer recommendation at Joshua's request; see docs/decisions.md). Calibrated with research/ on synthetic paths; recalibrate on real order-book history before real funds.",
   "descriptor": {
     "venue": "polymarket",
     "chain": "polygon:137",
@@ -14,11 +14,24 @@
     "executor_adapter_id": "mock-venue@1",
     "pricing_adapter_id": "depth-walk-mark@1",
     "strategy": "PoolOnly",
-    "allowed_actions": { "open": true, "increase": false, "reduce": true, "close": true, "liquidate": true },
+    "allowed_actions": {
+      "open": true,
+      "increase": false,
+      "reduce": true,
+      "close": true,
+      "liquidate": true
+    },
     "entry_start": "now-60",
     "entry_end": "now+604800",
-    "event_windows": [],
-    "max_leverage": "5",
+    "event_windows": [
+      {
+        "label": "Final hour before resolution",
+        "start": "res-3600",
+        "end": "res",
+        "mode": "CloseOnly"
+      }
+    ],
+    "max_leverage": "4",
     "min_adverse_ticks": 10,
     "tick_size": "0.01",
     "min_margin_usd": "10",
@@ -38,7 +51,7 @@
       "hold_apr_bps": 1000,
       "liquidation_reward_bps": 500,
       "liquidation_reward_cap_usd": "5",
-      "floor_coverage_bps": 500,
+      "floor_coverage_bps": 1500,
       "insurance_share_bps": 2000,
       "treasury_share_bps": 1000
     },

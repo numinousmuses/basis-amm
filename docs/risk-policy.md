@@ -36,5 +36,6 @@ trader is never charged beyond posted margin.
 
 ## Calibration status
 
-`research/` shows the shipped 5% floor coverage loses money for LPs on every simulated event
-family. Do not use these values with real funds.
+Leverage caps (3-4x per family, 5x protocol ceiling) and floor coverage (15-55%) are calibrated
+with `research/` on synthetic paths; LPs profit in 18 of 20 seeded runs at the shipped values
+(`docs/decisions.md`). Recalibrate on real order-book history before real funds.

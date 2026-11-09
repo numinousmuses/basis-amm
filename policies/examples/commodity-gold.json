@@ -6,12 +6,18 @@
     "underlying_event": "Will gold settle above $3,000/oz this month?",
     "category_label": "Commodities",
     "outcomes": [
-      { "label": "YES", "venue_token_ref": "polygon:ctf:gold-yes" },
-      { "label": "NO", "venue_token_ref": "polygon:ctf:gold-no" }
+      {
+        "label": "YES",
+        "venue_token_ref": "polygon:ctf:gold-yes"
+      },
+      {
+        "label": "NO",
+        "venue_token_ref": "polygon:ctf:gold-no"
+      }
     ]
   },
   "policy": {
     "max_spread_bps": 800,
-    "human_readable_rules": "Commodity event admitted by manifest alone. Max 5x. The fair-price gate charges 5% of the hold-to-resolution floor value."
+    "human_readable_rules": "Commodity event admitted by manifest alone. Max 4x. The fair-price gate charges 15% of the hold-to-resolution floor value."
   }
 }

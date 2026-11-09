@@ -74,3 +74,8 @@ labeled deterministic mock executor (spec section 11 "hackathon minimum").
   Research finding: 5% floor coverage loses LP money in all families; breakeven 10-40% (docs/decisions.md).
 - 2026-11-09 04:40 ET: ALL MILESTONES DONE. Running processes: sandbox dev stack (:3030/:8797), testnet node (:8798), vite preview (:5419).
   Testnet RPC lessons: FastNEAR free tier and rpc.testnet.near.org both 429; fixed with SDK backoff + shared deduped view cache (lean mode).
+- 2026-11-09 05:40 ET: round 2 (Joshua: kill testnet, TEE oracle, make section 14 decisions). Testnet node stopped.
+  TEE oracle: crates/oracle-tee (wasip2, PROTECTED_ORACLE_KEY, Gamma second source), contract request_tee_reporter/on_tee_reporter,
+  require_attested_marks, contracts/mock-outlayer (sandbox only), basis-node --tee-outlayer/--tee-wasmtime. docs/tee-oracle.md.
+  Decisions: docs/decisions.md DECIDED; caps 4x crypto/election, 3x sports/Fed, ceiling 5x; coverage 15/35/55/55%; final-hour CLOSE_ONLY;
+  bLP non-transferable. Tests use specFixtureManifests() (labeled 5x override). All suites green: e2e 21, node 10, web 25+7, rust 37+5.

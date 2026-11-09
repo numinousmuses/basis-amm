@@ -15,7 +15,7 @@ import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { Account, JsonRpcProvider, KeyPair } from "near-api-js";
 import { TGAS, nowNs, type SignedReport } from "@basis/sdk";
-import { REPO_ROOT, deployStack, loadExampleManifests, startSandbox, type Sandbox } from "@basis/stack";
+import { REPO_ROOT, deployStack, specFixtureManifests, startSandbox, type Sandbox } from "@basis/stack";
 import { Ctx, D, LEV, expectFailure, sleep } from "../src/ctx.js";
 
 const SECRET = "c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00";
@@ -55,7 +55,7 @@ beforeAll(async () => {
     network: "sandbox",
     rpcUrl: sb.rpcUrl,
     master: { accountId: sb.rootAccountId, secretKey: sb.rootSecretKey },
-    manifests: Object.values(loadExampleManifests()),
+    manifests: specFixtureManifests(),
   });
   x = new Ctx(stack);
   // Sandbox-only stand-in for outlayer.near.

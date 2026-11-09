@@ -31,3 +31,16 @@ export function loadExampleManifests(dir = POLICY_DIR): Record<string, MarketMan
   }
   return out;
 }
+
+/** Spec section 11's demo scenarios are written for 5x positions. The shipped policies cap most
+ * markets at 3-4x (docs/decisions.md), so the acceptance suite deploys these fixture markets with
+ * a labeled 5x override. Never used outside tests. */
+export const SPEC_FIXTURE_5X = ["pm-btc-above-100k-daily", "pm-sol-above-300-weekly", "pm-senate-control-2026", "pm-fed-dec-decision", "pm-eth-above-4k-weekly", "pm-gold-above-3000"];
+
+export function specFixtureManifests(dir = POLICY_DIR): MarketManifest[] {
+  return Object.values(loadExampleManifests(dir)).map((m) =>
+    SPEC_FIXTURE_5X.includes(m.descriptor.market_id)
+      ? deepMerge(m, { policy: { max_leverage: "5", governance_approval: "TEST FIXTURE: 5x override for spec section 11 demo numbers" } })
+      : m,
+  );
+}

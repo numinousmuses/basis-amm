@@ -5,7 +5,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { DEFAULTS, STRATEGIES, runAll, runFamily } from "./sim.js";
-import { polymarketHistory, type Family } from "./paths.js";
+import { FAMILIES, polymarketHistory, type Family } from "./paths.js";
 
 const out = join(dirname(fileURLToPath(import.meta.url)), "../out");
 mkdirSync(out, { recursive: true });
@@ -55,3 +55,36 @@ for (const cov of sweep) {
 writeFileSync(join(out, "report.md"), md + sm);
 writeFileSync(join(out, "sweep.json"), JSON.stringify(sweepOut, null, 2));
 console.log(sm);
+
+// Calibration: per family, the break-even floor coverage for POOL_ONLY LPs under the recommended
+// leverage cap, averaged over five seeds, plus a 25% buffer rounded up to 5%. The recommendation is
+// then checked on every seed. Input to `floor_coverage_bps` and `max_leverage` (docs/decisions.md).
+const CAPS: Record<string, number> = { "crypto-daily": 4, "sports-in-play": 3, election: 4, "fed-meeting": 3 };
+const SEEDS = [7, 11, 23, 42, 99];
+function breakeven(fam: (typeof FAMILIES)[number], seed: number): number {
+  let lo = 0;
+  let hi = 1.5;
+  for (let i = 0; i < 18; i++) {
+    const mid = (lo + hi) / 2;
+    const r = runFamily(fam, { ...cfg, seed, maxLeverage: CAPS[fam.name], floorCoverage: mid, eventsPerFamily: 120 });
+    if (r.strategies.POOL_ONLY.totalPnl >= 0) hi = mid;
+    else lo = mid;
+  }
+  return hi;
+}
+const rec: Record<string, unknown> = {};
+let rm = "\n## Calibrated leverage cap and floor coverage\n\nBreak-even averaged over 5 seeds, +25% buffer, rounded up to 5%; then re-run on every seed.\n\n| Family | Leverage cap | Mean break-even | Worst seed | Recommended | Seeds with LP profit | Mean LP P&L | Trader EV per trade |\n|---|---|---|---|---|---|---|---|\n";
+for (const fam of FAMILIES) {
+  const bs = SEEDS.map((sd) => breakeven(fam, sd));
+  const mean = bs.reduce((a, b) => a + b, 0) / bs.length;
+  const recBps = Math.ceil((mean * 1.25 * 100) / 5) * 5 * 100;
+  const runs = SEEDS.map((sd) => runFamily(fam, { ...cfg, seed: sd, maxLeverage: CAPS[fam.name], floorCoverage: recBps / 10_000 }));
+  const wins = runs.filter((r) => r.strategies.POOL_ONLY.totalPnl > 0).length;
+  const lp = runs.reduce((a, r) => a + r.strategies.POOL_ONLY.totalPnl, 0) / runs.length;
+  const tev = runs.reduce((a, r) => a + r.traderEvPerTrade, 0) / runs.length;
+  rec[fam.name] = { leverage_cap: CAPS[fam.name], breakeven_by_seed: bs, recommended_bps: recBps, seeds_profitable: wins, mean_lp_pnl: lp, trader_ev_per_trade: tev };
+  rm += `| ${fam.name} | ${CAPS[fam.name]}x | ${(mean * 100).toFixed(1)}% | ${(Math.max(...bs) * 100).toFixed(1)}% | ${recBps / 100}% | ${wins}/5 | ${usd(lp)} | ${usd(tev)} |\n`;
+}
+writeFileSync(join(out, "recommended.json"), JSON.stringify(rec, null, 2));
+writeFileSync(join(out, "report.md"), md + sm + rm);
+console.log(rm);

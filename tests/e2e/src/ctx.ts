@@ -75,7 +75,7 @@ export class Ctx {
       requested_leverage: a.lev.toString(),
       max_entry_price: (a.maxEntry ?? P(0.99)).toString(),
       max_hedge_slippage_bps: a.hedgeSlipBps ?? 100,
-      max_fee: (a.maxFee ?? 20n * D).toString(),
+      max_fee: (a.maxFee ?? 200n * D).toString(),
       deadline_ns: (a.deadlineNs ?? nowNs() + 300_000_000_000n).toString(),
       take_profit_price: a.tp?.toString() ?? null,
       stop_loss_price: a.sl?.toString() ?? null,

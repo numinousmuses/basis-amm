@@ -14,7 +14,8 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test -p basis-math
+      - run: cargo test -p basis-math -p oracle-tee
+      - run: scripts/build-oracle-tee.sh
       - run: cargo check -p basis-core -p mock-usdc --target wasm32-unknown-unknown
 
   typescript:
@@ -49,6 +50,7 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - run: cargo near --version
       - run: scripts/build-contracts.sh
+      - run: scripts/build-oracle-tee.sh && cargo build -p oracle-tee
       - run: infra/local-dev/install-sandbox.sh
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4

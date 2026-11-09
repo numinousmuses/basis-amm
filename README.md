@@ -13,8 +13,8 @@ matching between traders. Before a position opens, the contract reserves the wor
 for every outcome of that event and checks it against per-event and global stress budgets.
 
 This implements `docs/spec/Basis_AMM_Engineering_Spec_v0.1.md`. **Testnet and test funds only.**
-Venue hedges run on a deterministic mock executor whose fills are labeled `simulated`. Fee and risk
-parameters are provisional until the product owner decides spec section 14 (`docs/decisions.md`).
+Venue hedges run on a deterministic mock executor whose fills are labeled `simulated`. Section 14
+decisions, including the calibrated risk premium and leverage caps, are in `docs/decisions.md`.
 
 ## Demo video
 
@@ -28,6 +28,7 @@ Render it yourself with `pnpm --filter @basis/video render`.
 
 | Path | What it is |
 |---|---|
+| `crates/oracle-tee` | The mark oracle that runs inside OutLayer's Intel TDX workers (`wasm32-wasip2`): TEE-generated key, second-source check. See `docs/tee-oracle.md`. |
 | `crates/basis-math` | Fixed-point payoff, depth walk, scenario reserve, fees, fair-value gate, bLP share math. Property-tested. |
 | `contracts/basis-core` | The NEAR contract: market registry with versioned policies and a timelock, the vault and `bLP` (NEP-141), margin engine, oracle verifier, hedge receipts, insurance ledger, views. |
 | `contracts/mock-usdc` | `tUSDC`, a 6-decimal testnet NEP-141 with a faucet. Not money. |
@@ -67,6 +68,8 @@ pnpm --filter @basis/node test                    # 7 automation tests: keeper, 
 pnpm --filter @basis/web test                     # 25 unit tests
 pnpm --filter @basis/web e2e                      # 7 Playwright tests against the running stack
 pnpm --filter @basis/research test                # simulator invariants
+cargo test -p oracle-tee                          # TEE oracle: digest parity with the contract, second-source refusal
+scripts/build-oracle-tee.sh                       # wasm32-wasip2 build + SHA-256 to pin
 BASIS_TARGET=testnet BASIS_TESTNET_MASTER=<funded>.testnet pnpm --filter @basis/e2e test
 ```
 

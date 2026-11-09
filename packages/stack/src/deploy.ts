@@ -39,7 +39,7 @@ export const NEAR = 10n ** 24n;
 
 export function sandboxConfig(over: Partial<ProtocolConfig> = {}): ProtocolConfig {
   return {
-    max_leverage_ceiling: "100000",
+    max_leverage_ceiling: "50000",
     global_stress_cap_bps: 1000,
     policy_timelock_ns: "1000000000",
     min_lp_deposit: "10000000",
@@ -49,7 +49,7 @@ export function sandboxConfig(over: Partial<ProtocolConfig> = {}): ProtocolConfi
     max_fee_bps_bound: 500,
     max_event_stress_cap_bps: 1000,
     max_hedge_budget_bps: 2000,
-    blp_transferable: true,
+    blp_transferable: false,
     event_log_capacity: 4000,
     require_attested_marks: false,
     tee: null,

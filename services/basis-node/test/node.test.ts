@@ -3,7 +3,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import WebSocket from "ws";
 import { nowNs, type OrderIntent } from "@basis/sdk";
-import { clientFor, deployStack, loadExampleManifests, startSandbox, type DeployedStack, type Sandbox } from "@basis/stack";
+import { clientFor, deployStack, specFixtureManifests, startSandbox, type DeployedStack, type Sandbox } from "@basis/stack";
 import { startNode } from "../src/node.js";
 import { MockFeed } from "../src/feeds.js";
 
@@ -42,7 +42,7 @@ async function intent(market: string, o: Partial<OrderIntent> & { margin: bigint
     requested_leverage: lev.toString(),
     max_entry_price: "990000",
     max_hedge_slippage_bps: 100,
-    max_fee: (20n * D).toString(),
+    max_fee: (200n * D).toString(),
     deadline_ns: (nowNs() + 120_000_000_000n).toString(),
     take_profit_price: null,
     stop_loss_price: null,
@@ -60,7 +60,7 @@ beforeAll(async () => {
     network: "sandbox",
     rpcUrl: sb.rpcUrl,
     master: { accountId: sb.rootAccountId, secretKey: sb.rootSecretKey },
-    manifests: Object.values(loadExampleManifests()),
+    manifests: specFixtureManifests(),
   });
   feed = new MockFeed(7, 0);
   feed.set(BTC, { mids: [495_000n, 505_000n] });

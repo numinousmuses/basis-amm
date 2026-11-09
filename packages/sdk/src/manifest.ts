@@ -68,10 +68,16 @@ export interface MarketManifest {
 }
 
 const S = 1_000_000_000n;
-/** ISO time, "now", "now+3600", "now-60" (seconds) -> ns string. */
-export function timeNs(v: string, nowMs = Date.now()): string {
+/** ISO time, "now", "now+3600", "now-60" (seconds), or "res-3600" (relative to the market's
+ * expected resolution) -> ns string. */
+export function timeNs(v: string, nowMs = Date.now(), resolutionNs?: bigint): string {
   const m = v.match(/^now([+-]\d+)?$/);
   if (m) return ((BigInt(nowMs) * 1_000_000n) + BigInt(m[1] ?? "0") * S).toString();
+  const r = v.match(/^res([+-]\d+)?$/);
+  if (r) {
+    if (resolutionNs === undefined) throw new Error("manifest: res-relative time needs expected_resolution");
+    return (resolutionNs + BigInt(r[1] ?? "0") * S).toString();
+  }
   if (v === "max") return "18446744073709551615";
   const t = Date.parse(v);
   if (Number.isNaN(t)) throw new Error(`manifest: bad time ${v}`);
@@ -110,6 +116,7 @@ export function manifestToChain(m: MarketManifest, nowMs = Date.now()): { descri
     expected_resolution_ns: timeNs(d.expected_resolution, nowMs),
   };
   const p = m.policy;
+  const resNs = BigInt(descriptor.expected_resolution_ns);
   const policy: MarketPolicy = {
     schema_version: 1,
     risk_model_id: p.risk_model_id,
@@ -117,9 +124,9 @@ export function manifestToChain(m: MarketManifest, nowMs = Date.now()): { descri
     pricing_adapter_id: p.pricing_adapter_id,
     strategy: p.strategy,
     allowed_actions: p.allowed_actions,
-    entry_start_ns: timeNs(p.entry_start, nowMs),
-    entry_end_ns: timeNs(p.entry_end, nowMs),
-    event_windows: p.event_windows.map((w) => ({ label: w.label, start_ns: timeNs(w.start, nowMs), end_ns: timeNs(w.end, nowMs), mode: w.mode })),
+    entry_start_ns: timeNs(p.entry_start, nowMs, resNs),
+    entry_end_ns: timeNs(p.entry_end, nowMs, resNs),
+    event_windows: p.event_windows.map((w) => ({ label: w.label, start_ns: timeNs(w.start, nowMs, resNs), end_ns: timeNs(w.end, nowMs, resNs), mode: w.mode })),
     max_leverage: decimalToFixed(p.max_leverage, 4).toString(),
     min_adverse_ticks: p.min_adverse_ticks,
     tick_size: px(p.tick_size),

@@ -6,8 +6,14 @@
     "underlying_event": "Will ETH close the week above $4,000?",
     "category_label": "Crypto",
     "outcomes": [
-      { "label": "YES", "venue_token_ref": "polygon:ctf:eth-weekly-yes" },
-      { "label": "NO", "venue_token_ref": "polygon:ctf:eth-weekly-no" }
+      {
+        "label": "YES",
+        "venue_token_ref": "polygon:ctf:eth-weekly-yes"
+      },
+      {
+        "label": "NO",
+        "venue_token_ref": "polygon:ctf:eth-weekly-no"
+      }
     ]
   },
   "policy": {

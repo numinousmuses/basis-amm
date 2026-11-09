@@ -26,12 +26,13 @@
   },
   "policy": {
     "strategy": "PoolPlusHedge",
-    "max_leverage": "5",
+    "max_leverage": "4",
     "hedge_budget_bps": 1000,
     "fees": {
-      "hold_apr_bps": 1500
+      "hold_apr_bps": 1500,
+      "floor_coverage_bps": 3500
     },
     "dispute_window_s": 8,
-    "human_readable_rules": "Long holding period with a 15% APR holding charge on the virtual financing base. Vault may hold exact-share hedges (POOL_PLUS_HEDGE). Settlement waits for finalized UMA resolution; an invalid market pays 0.50 per unit."
+    "human_readable_rules": "Long holding period with a 15% APR holding charge on the virtual financing base. Max 4x. The risk premium covers 35% of the hold-to-resolution floor value. Vault may hold exact-share hedges (POOL_PLUS_HEDGE). Settlement waits for finalized UMA resolution; an invalid market pays 0.50 per unit."
   }
 }

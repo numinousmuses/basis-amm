@@ -23,8 +23,9 @@ it, with the reason. Nothing here weakens a loss-cap, reserve or nonrecourse inv
 4. **Fair-price gate model.** The spec asks for a fair-value test but leaves the model open. The
    contract charges a risk premium of `floor_coverage_bps` of the hold-to-resolution trader EV
    under mark-implied scenario probabilities, and rejects with `FAIR_VALUE` when that premium plus
-   the open fee exceeds the user's signed `max_fee`. It is an upper bound on the floor's value, not
-   a calibrated price. See `docs/decisions.md`.
+   the open fee exceeds the user's signed `max_fee`. Coverage and leverage caps are calibrated per
+   market family with the simulator on synthetic paths (`docs/decisions.md`), not on real order-book
+   history yet.
 5. **Liquidity reserve gives no credit for hedges.** Section 5 nets hedge P&L in `LP_Loss(s)`. The
    contract keeps two numbers per event: `stress_loss` (nets vault-owned hedge P&L, used for the NAV
    risk budgets, exactly as the spec writes it) and `payout_reserve` (no hedge credit, used to gate
@@ -43,9 +44,12 @@ it, with the reason. Nothing here weakens a loss-cap, reserve or nonrecourse inv
 
 ## Oracle and execution
 
-10. **Mark reporter is a single dev key.** Reports are ed25519-signed and verified onchain with a
-    domain-separated digest. There is no OutLayer/TEE deployment; `attestation_measurement` is
-    recorded as `dev:unattested`. Resolution supports a reporter quorum and a dispute window.
+10. **TEE oracle is built but not yet running on OutLayer.** `crates/oracle-tee` runs as
+    `wasm32-wasip2` (verified locally under wasmtime against live Polymarket), and the contract
+    registers TEE-attested keys only through OutLayer's callback for the pinned WASM hash
+    (`docs/tee-oracle.md`). The sandbox tests use a labeled mock of OutLayer; deploying to a real
+    TDX worker needs an OutLayer account and a PROTECTED secret. Until then the demo stacks run with
+    `require_attested_marks: false` and a dev mark key.
 11. **Execution is keeper-only.** `execute_open` / `execute_close` are restricted to keeper or
     executor accounts so a user cannot pick the most favorable of several valid marks. Liquidation
     is permissionless.
