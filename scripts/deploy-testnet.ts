@@ -28,7 +28,10 @@ const stack = await deployStack({
   master: loadLegacyCredential(masterId),
   manifests: Object.values(loadExampleManifests()),
   config: testnetConfig({ policy_timelock_ns: "30000000000" }),
-  nearPerAccount: TESTNET_BUDGET,
+  // BASIS_LEAN_BUDGET=1 trims the demo-only accounts so a stack fits in ~24.5 NEAR.
+  nearPerAccount: process.env.BASIS_LEAN_BUDGET
+    ? { ...TESTNET_BUDGET, core: 11n * 10n ** 24n, usdc: (23n * 10n ** 24n) / 10n, admin: (12n * 10n ** 24n) / 10n, risk: (8n * 10n ** 24n) / 10n, guardian: 5n * 10n ** 23n, lp: 8n * 10n ** 23n, alice: 10n ** 24n, bob: 10n ** 24n, carol: 5n * 10n ** 23n, dave: 3n * 10n ** 23n }
+    : TESTNET_BUDGET,
   userUsd: 20_000n,
   faucetLimitUsd: 100_000n,
   log: (m) => console.log(m),

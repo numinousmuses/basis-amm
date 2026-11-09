@@ -1,5 +1,6 @@
 /** Wires every service into one process. Exported so tests can run the node in-process. */
 import type { DeployedStack } from "@basis/stack";
+import { BasisClient } from "@basis/sdk";
 import { makeContext, loop } from "./context.js";
 import { MockFeed, type Feed } from "./feeds.js";
 import { OracleWorker } from "./oracle.js";
@@ -24,6 +25,7 @@ export interface NodeOptions {
 
 export async function startNode(stack: DeployedStack, o: NodeOptions = {}) {
   const feed = o.feed ?? new MockFeed();
+  if (o.lean) BasisClient.enableViewCache(stack.rpcUrl, 3000);
   const ctx = makeContext(stack, feed);
   const store = new Store(o.dbPath ?? ":memory:");
   const oracle = new OracleWorker(ctx, { lean: o.lean, pushEveryMs: 180_000 });
@@ -32,7 +34,11 @@ export async function startNode(stack: DeployedStack, o: NodeOptions = {}) {
   const reconciler = new Reconciler(ctx, executor);
   const indexer = new Indexer(ctx, store, oracle);
   const quotes = new QuoteEngine(ctx, oracle);
-  const iv = { oracle: 5000, orders: 1000, positions: 4000, settlement: 4000, executor: 1500, reconciler: 15000, events: 1500, marks: 1000, vault: 10000, ...o.intervals };
+  // Lean (testnet) intervals keep view traffic under public RPC rate limits.
+  const base = o.lean
+    ? { oracle: 20000, orders: 2500, positions: 15000, settlement: 15000, executor: 4000, reconciler: 60000, events: 5000, marks: 2000, vault: 30000 }
+    : { oracle: 5000, orders: 1000, positions: 4000, settlement: 4000, executor: 1500, reconciler: 15000, events: 1500, marks: 1000, vault: 10000 };
+  const iv = { ...base, ...o.intervals };
   const err = (svc: string) => (e: unknown) => log("warn", svc, "tick failed", { err: String((e as any)?.message ?? e) });
   await oracle.tick().catch(err("oracle"));
   const loops = [
@@ -46,7 +52,7 @@ export async function startNode(stack: DeployedStack, o: NodeOptions = {}) {
     loop("marks", iv.marks, async () => indexer.tickMarks(), err("indexer")),
     loop("vault", iv.vault, () => indexer.tickVault(), err("indexer")),
   ];
-  const server = startApi({ ctx, store, oracle, indexer, keeper, executor, reconciler, quotes, devControls: o.devControls ?? false, exposeDevKeys: o.exposeDevKeys ?? false, startedAt: Date.now() }, o.port ?? 8797);
+  const server = startApi({ ctx, store, oracle, indexer, keeper, executor, reconciler, quotes, devControls: o.devControls ?? false, exposeDevKeys: o.exposeDevKeys ?? false, cacheTtlMs: o.lean ? 4000 : 0, startedAt: Date.now() }, o.port ?? 8797);
   return {
     ctx,
     store,

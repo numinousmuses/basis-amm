@@ -116,7 +116,28 @@ export interface BasisClientOptions {
  * read after a write always sees that write. */
 const writeHeads = new Map<string, number>();
 
+/** Public RPC endpoints rate-limit (HTTP 429). Back off exponentially instead of failing. */
+export async function withRateLimitRetry<T>(f: () => Promise<T>, tries = 6): Promise<T> {
+  for (let i = 0; ; i++) {
+    try {
+      return await f();
+    } catch (e: any) {
+      const msg = String(e?.message ?? e);
+      if (i >= tries || !/429|rate limit|Too Many Requests/i.test(msg)) throw e;
+      await new Promise((r) => setTimeout(r, 400 * 2 ** i + Math.random() * 200));
+    }
+  }
+}
+
+/** Optional shared view cache per RPC URL (enabled with `BasisClient.enableViewCache`). Identical
+ * concurrent reads share one request; any write through this process clears the cache. */
+const viewCaches = new Map<string, { ttlMs: number; entries: Map<string, { at: number; p: Promise<unknown> }> }>();
+
 export class BasisClient {
+  static enableViewCache(rpcUrl: string, ttlMs: number) {
+    viewCaches.set(rpcUrl, { ttlMs, entries: new Map() });
+  }
+
   readonly provider: JsonRpcProvider;
   readonly contractId: string;
   readonly tokenId: string;
@@ -147,9 +168,23 @@ export class BasisClient {
   }
 
   async view<T>(method: string, args: Record<string, unknown> = {}, contractId = this.contractId): Promise<T> {
+    const vc = viewCaches.get(this.rpcUrl);
+    if (vc) {
+      const key = `${contractId}|${method}|${JSON.stringify(args)}`;
+      const hit = vc.entries.get(key);
+      if (hit && Date.now() - hit.at < vc.ttlMs) return hit.p as Promise<T>;
+      const p = this.viewUncached<T>(method, args, contractId);
+      vc.entries.set(key, { at: Date.now(), p });
+      p.catch(() => vc.entries.delete(key));
+      return p;
+    }
+    return this.viewUncached<T>(method, args, contractId);
+  }
+
+  private async viewUncached<T>(method: string, args: Record<string, unknown>, contractId: string): Promise<T> {
     const min = writeHeads.get(this.rpcUrl) ?? 0;
     for (let attempt = 0; ; attempt++) {
-      const r: any = await this.provider.callFunctionRaw({ contractId, method, args, blockQuery: { finality: "optimistic" } } as any);
+      const r: any = await withRateLimitRetry(() => this.provider.callFunctionRaw({ contractId, method, args, blockQuery: { finality: "optimistic" } } as any));
       if ((r.block_height ?? Infinity) >= min || attempt >= 40) {
         if (!r.result || r.result.length === 0) return undefined as T;
         const text = new TextDecoder().decode(new Uint8Array(r.result));
@@ -165,6 +200,7 @@ export class BasisClient {
 
   /** Record the height of the last block a transaction's receipts executed in. */
   private async noteWrite(raw: any) {
+    viewCaches.get(this.rpcUrl)?.entries.clear();
     const hashes: string[] = (raw?.receipts_outcome ?? []).map((r: any) => r.block_hash).filter(Boolean);
     const last = hashes[hashes.length - 1];
     if (!last) return;

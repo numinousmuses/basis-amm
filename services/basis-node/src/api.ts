@@ -26,6 +26,7 @@ export interface ApiDeps {
   oracle: OracleWorker;
   devControls: boolean;
   exposeDevKeys: boolean;
+  cacheTtlMs?: number;
   startedAt: number;
 }
 
@@ -176,6 +177,9 @@ export function startApi(d: ApiDeps, port: number) {
     ],
   ];
 
+  // Short-TTL cache for GET reads: many dashboard tabs polling must not multiply RPC load.
+  const cache = new Map<string, { at: number; body: Promise<unknown> }>();
+  const ttlMs = d.cacheTtlMs ?? 0;
   const server = createServer(async (req, res) => {
     if (req.method === "OPTIONS") return json(res, 204, {});
     const url = new URL(req.url ?? "/", "http://localhost");
@@ -183,6 +187,15 @@ export function startApi(d: ApiDeps, port: number) {
       const m = url.pathname.match(re);
       if (m && req.method === method) {
         try {
+          if (method === "GET" && ttlMs > 0 && !url.pathname.startsWith("/api/dev")) {
+            const key = url.pathname + url.search;
+            const hit = cache.get(key);
+            if (hit && Date.now() - hit.at < ttlMs) return json(res, 200, await hit.body);
+            const body = handler(m, req, url);
+            cache.set(key, { at: Date.now(), body });
+            body.catch(() => cache.delete(key));
+            return json(res, 200, await body);
+          }
           return json(res, 200, await handler(m, req, url));
         } catch (e: any) {
           const code = e instanceof HttpError ? e.code : 500;

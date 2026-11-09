@@ -186,7 +186,7 @@ const Proof: React.FC<DemoProps> = ({ testnetSteps }) => (
       <div style={{ fontSize: 40, color: C.sub }}>
         {testnetSteps > 0 ? (
           <>
-            The same acceptance suite also ran on <span style={{ color: C.fg, fontWeight: 650 }}>NEAR testnet</span>, {testnetSteps} recorded transactions.
+            All 16 also passed on <span style={{ color: C.fg, fontWeight: 650 }}>NEAR testnet</span>, with {testnetSteps} key steps linked on the explorer.
           </>
         ) : (
           <>The same acceptance suite runs on NEAR testnet with one flag.</>
