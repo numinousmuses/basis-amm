@@ -143,6 +143,9 @@ export interface DiscoveredMarket {
   volume24h: number;
   tickSize: number;
   category: string;
+  /** Last price of the first outcome (usually YES). */
+  price: number | null;
+  conditionId2?: string;
 }
 
 /** Read-only Gamma API discovery: active, order-book-enabled markets. Produces data for draft
@@ -165,5 +168,6 @@ export async function discoverPolymarket(limit = 20, base = "https://gamma-api.p
       volume24h: Number(m.volume24hr ?? 0),
       tickSize: Number(m.orderPriceMinTickSize ?? 0.01),
       category: m.category ?? m.events?.[0]?.category ?? "Uncategorized",
+      price: parse(m.outcomePrices)[0] !== undefined ? Number(parse(m.outcomePrices)[0]) : null,
     }));
 }

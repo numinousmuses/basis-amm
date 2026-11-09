@@ -76,7 +76,9 @@ export function startApi(d: ApiDeps, port: number) {
         devControls: d.devControls,
         quoteKey: d.quotes.publicKey,
         markReporter: ctx.markReporter.publicKeyHex,
-        simulatedVenue: true,
+        // True unless a live Polymarket venue is configured (mock fixtures and paper fills are simulated).
+        simulatedVenue: d.executor.polymarketVenue?.simulated ?? true,
+        hedgeVenue: d.executor.polymarketVenue?.name ?? "mock-venue",
       }),
     ],
     [

@@ -258,7 +258,7 @@ export class HedgeExecutor {
           const r = await venue.redeem(m, i, u, payout);
           await this.ctx.executor.recordHedgeRedemption(marketId, i, u, r.proceeds, r.txHash);
           this.hold(marketId, i, -u, units.length);
-          this.store?.insertFill({ fill_id: `redeem:${marketId}:${i}:${Date.now()}`, order_id: null, market: marketId, outcome: i, units: u.toString(), price: payout.toString(), tx: r.txHash, side: "sell", simulated: venue.simulated });
+          this.store?.insertFill({ fill_id: `redeem:${marketId}:${i}:${Date.now()}`, order_id: null, market: marketId, outcome: i, units: u.toString(), price: payout.toString(), tx: r.txHash, side: "redeem", simulated: venue.simulated });
           log("info", "executor", "redeemed", { market: marketId, outcome: i, units: u, proceeds: r.proceeds, tx: r.txHash });
         } catch (e: any) {
           log("warn", "executor", "redeem failed", { market: marketId, err: String(e?.message ?? e) });

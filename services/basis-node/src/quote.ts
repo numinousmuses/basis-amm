@@ -38,10 +38,12 @@ export class QuoteEngine {
   ) {}
 
   async quote(q: QuoteRequest): Promise<Quote> {
-    // Lean mode: make sure the contract holds a recent mark so preview_open is not stale.
-    if (this.oracle?.opts.lean) {
+    // Make sure the contract holds a recent mark so preview_open is not stale: always in lean mode,
+    // and in any mode for a market with no stored mark yet (e.g. just admitted).
+    if (this.oracle) {
       const m = await this.ctx.anon.getMarket(q.market_id);
-      if (m) await this.oracle.ensureOnchain(m, 60_000).catch(() => {});
+      const stored = m ? await this.ctx.anon.getMark(q.market_id) : null;
+      if (m && (this.oracle.opts.lean || !stored)) await this.oracle.ensureOnchain(m, stored ? 60_000 : 0).catch(() => {});
     }
     const margin = BigInt(q.margin);
     const lev = BigInt(q.leverage);
