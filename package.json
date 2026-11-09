@@ -9,10 +9,13 @@
   "scripts": {
     "build:contracts": "bash scripts/build-contracts.sh",
     "test:rust": "cargo test --workspace --exclude near-sandbox-tests",
-    "test:ts": "pnpm -r --filter ./packages/** --filter ./services/** test",
+    "test:ts": "pnpm --filter @basis/sdk --filter @basis/stack --filter @basis/research --filter @basis/web test",
     "test:e2e": "pnpm --filter @basis/e2e test",
     "dev": "bash scripts/dev.sh",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "dev:testnet": "bash scripts/dev.sh testnet",
+    "test:node": "pnpm --filter @basis/node test",
+    "test:live": "BASIS_LIVE_TESTS=1 pnpm --filter @basis/node test"
   },
   "devDependencies": {
     "tsx": "^4.19.0",

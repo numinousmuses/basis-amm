@@ -26,6 +26,17 @@ killed hard, stop the orphaned `near-sandbox` process by its PID.
 4. Point the dashboard at it: `VITE_API_URL=http://127.0.0.1:8798 pnpm --filter @basis/web dev`.
    Use MyNearWallet or Meteor on testnet; mint `tUSDC` from the faucet button.
 
+## Running the dashboard against your testnet stack
+
+`scripts/dev.sh testnet infra/testnet/<name>-stack.secret.json` starts basis-node in lean mode
+with `--expose-dev-keys`, which serves that stack's role keys to the LOCAL dashboard so you can
+trade as alice/bob/carol and act as admin, risk council or guardian. Never run that flag on a
+publicly reachable host. To trade with your own wallet instead, use MyNearWallet or Meteor in
+Settings and mint tUSDC from the faucet button.
+
+Add a live Polymarket market to the stack from the Admin console ("Admit a live Polymarket
+market") or with `services/basis-node/scripts/admit-polymarket.ts`; see `docs/hedging.md`.
+
 ## Before any real funds
 
 Independent audit, legal review, a real collateral token and custody design, an attested oracle
