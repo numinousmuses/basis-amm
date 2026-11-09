@@ -82,12 +82,14 @@ pub fn depth_units(levels: &[Level]) -> MathResult<u128> {
     levels.iter().try_fold(0u128, |acc, l| add(acc, l.size))
 }
 
-/// Spread of best ask over best bid in bps of the ask. Returns `BPS` when either side is empty.
+/// Absolute spread `ask - bid` in bps of a full $1 payout (100 bps == one cent). Prediction-market
+/// prices live in [0, 1], so a relative spread would brand a normal one-cent spread on a $0.10
+/// outcome as 10%. Returns `BPS` when either side is empty or the book is crossed.
 pub fn spread_bps(best_bid: u128, best_ask: u128) -> MathResult<u128> {
     if best_ask == 0 || best_bid == 0 || best_bid > best_ask {
         return Ok(BPS);
     }
-    mul_div_ceil(best_ask - best_bid, BPS, best_ask)
+    mul_div_ceil(best_ask - best_bid, BPS, PRICE_SCALE)
 }
 
 #[cfg(test)]
@@ -131,7 +133,8 @@ mod tests {
 
     #[test]
     fn spread() {
-        assert_eq!(spread_bps(490_000, 500_000).unwrap(), 200);
+        assert_eq!(spread_bps(490_000, 500_000).unwrap(), 100);
+        assert_eq!(spread_bps(90_000, 100_000).unwrap(), 100);
         assert_eq!(spread_bps(0, 500_000).unwrap(), BPS);
     }
 

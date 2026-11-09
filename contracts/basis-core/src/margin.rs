@@ -753,7 +753,7 @@ impl Contract {
         self.emit("order_rejected", json!({"order_id": o.order_id, "state": state, "reason": reason, "refund": U128(refund)}));
         let owner = o.owner.clone();
         self.pay(&owner, refund);
-        format!("{state:?}:{reason}").to_uppercase()
+        format!("{}:{reason}", format!("{state:?}").to_uppercase())
     }
 
     pub(crate) fn order(&self, id: u64) -> Order {

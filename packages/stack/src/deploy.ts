@@ -20,7 +20,7 @@ export interface KeyedAccount {
   secretKey: string;
 }
 
-export const ROLE_NAMES = ["core", "usdc", "admin", "risk", "guardian", "keeper", "executor", "lp", "alice", "bob", "carol"] as const;
+export const ROLE_NAMES = ["core", "usdc", "admin", "risk", "guardian", "keeper", "executor", "lp", "alice", "bob", "carol", "dave"] as const;
 export type RoleName = (typeof ROLE_NAMES)[number];
 
 export interface DeployedStack {
@@ -107,6 +107,8 @@ export async function deployStack(o: DeployOptions): Promise<DeployedStack> {
     alice: 2n * NEAR,
     bob: 2n * NEAR,
     carol: 2n * NEAR,
+    // dave is deliberately NOT registered on the collateral token: exercises failed transfers.
+    dave: 2n * NEAR,
   };
   const accounts = {} as Record<RoleName, KeyedAccount>;
   for (const name of ROLE_NAMES) {
