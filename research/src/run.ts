@@ -41,3 +41,17 @@ for (const r of reports) {
 writeFileSync(join(out, "report.json"), JSON.stringify({ config: cfg, reports }, null, 2));
 writeFileSync(join(out, "report.md"), md);
 console.log(md);
+
+// Floor-coverage sweep: LP P&L for POOL_ONLY as the fair-value premium covers more of the
+// hold-to-resolution floor value. This is the input to the section 14 fee decision.
+const sweep = [0.05, 0.1, 0.25, 0.5, 0.75, 1.0];
+let sm = "\n## Floor-coverage sweep (POOL_ONLY LP P&L, all families)\n\n| Coverage | " + reports.slice(0, 4).map((r) => r.family).join(" | ") + " |\n|---|" + reports.slice(0, 4).map(() => "---").join("|") + "|\n";
+const sweepOut: Record<string, Record<string, number>> = {};
+for (const cov of sweep) {
+  const rs = runAll({ ...cfg, floorCoverage: cov });
+  sweepOut[cov] = Object.fromEntries(rs.map((r) => [r.family, r.strategies.POOL_ONLY.totalPnl]));
+  sm += `| ${cov * 100}% | ${rs.map((r) => usd(r.strategies.POOL_ONLY.totalPnl)).join(" | ")} |\n`;
+}
+writeFileSync(join(out, "report.md"), md + sm);
+writeFileSync(join(out, "sweep.json"), JSON.stringify(sweepOut, null, 2));
+console.log(sm);

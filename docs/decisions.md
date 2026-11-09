@@ -44,3 +44,21 @@ a 5x position at $0.50 would cost $200 of premium on $100 of margin, which kills
 the shipped 5% it costs $9.85. Liquidation before resolution makes the true value lower than the
 hold-to-resolution bound, but by how much depends on how often marks gap through the liquidation
 price, which needs the historical backtest the spec asks for before any real funds.
+
+The simulator in `research/` puts numbers on this (synthetic paths with jumps, 10,000 trades per
+event family, `pnpm --filter @basis/research sim`). LP P&L for `POOL_ONLY` by coverage:
+
+| Coverage | crypto-daily | sports-in-play | election | fed-meeting |
+|---|---|---|---|---|
+| 5% (shipped) | -$34,354 | -$122,317 | -$119,583 | -$218,566 |
+| 10% | -$22 | -$94,650 | -$86,221 | -$178,036 |
+| 25% | $102,975 | -$11,647 | $13,867 | -$56,445 |
+| 50% | $274,637 | $126,690 | $180,679 | $146,206 |
+
+At 5% the vault loses money in every family. Breakeven sits around 10% for liquid crypto and
+25-40% where one catalyst decides the event (sports, Fed). The losses come from positions held
+through resolution: a losing trader's equity jumps from positive to `M - N` in one step, and the
+floor absorbs `(L-1)M`. Three levers, all policy data, none needing code: a higher
+`floor_coverage_bps`, lower `max_leverage` near the catalyst, or a `CLOSE_ONLY` window before
+resolution so new exposure stops accumulating. A maintenance curve that rises toward resolution
+(liquidating losers earlier, never touching winners) would need a contract change.
