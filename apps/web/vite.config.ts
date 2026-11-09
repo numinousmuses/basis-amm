@@ -20,10 +20,22 @@ function meteorNearApiV6(): Plugin {
   };
 }
 
+/** Same redirect for the dev server's esbuild dependency pre-bundler, which skips Vite plugins. */
+function meteorNearApiV6Esbuild() {
+  const require = createRequire(import.meta.url);
+  const v6Entry = require.resolve("near-api-js-v6");
+  return {
+    name: "meteor-near-api-js-v6-esbuild",
+    setup(build: any) {
+      build.onResolve({ filter: /^near-api-js$/ }, (args: any) => (args.importer.includes("@meteorwallet") ? { path: v6Entry } : undefined));
+    },
+  };
+}
+
 export default defineConfig({
   plugins: [meteorNearApiV6(), react()],
   resolve: { alias: { buffer: "buffer/" } },
   build: { target: "es2022", chunkSizeWarningLimit: 3000 },
-  optimizeDeps: { esbuildOptions: { target: "es2022" } },
+  optimizeDeps: { esbuildOptions: { target: "es2022", plugins: [meteorNearApiV6Esbuild()] } },
   test: { include: ["src/**/*.test.ts"], environment: "node" },
 } as any);
