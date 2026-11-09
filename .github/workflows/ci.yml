@@ -43,7 +43,11 @@ jobs:
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
       - name: cargo-near
-        run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/near/cargo-near/releases/download/cargo-near-v0.23.0/cargo-near-installer.sh | sh
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/near/cargo-near/releases/download/cargo-near-v0.23.0/cargo-near-installer.sh | CARGO_DIST_FORCE_INSTALL_DIR="$HOME/.local" sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - run: cargo near --version
       - run: scripts/build-contracts.sh
       - run: infra/local-dev/install-sandbox.sh
       - uses: pnpm/action-setup@v4
