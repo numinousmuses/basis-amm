@@ -2,8 +2,8 @@
 resolver = "3"
 members = [
   "crates/basis-math",
-#  "contracts/basis-core",
-#  "contracts/mock-usdc",
+  "contracts/basis-core",
+  "contracts/mock-usdc",
 #  "tests/near-sandbox",
 ]
 
