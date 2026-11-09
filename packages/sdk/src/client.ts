@@ -49,7 +49,8 @@ export class BasisTxError extends Error {
 
 function decodeValue(b64: string | undefined): unknown {
   if (b64 === undefined || b64 === "") return undefined;
-  const s = Buffer.from(b64, "base64").toString("utf8");
+  const bin = atob(b64);
+  const s = new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
   try {
     return JSON.parse(s);
   } catch {
@@ -91,11 +92,23 @@ export function parseTx<T>(res: any): TxResult<T> {
   return { hash, value, failures, logs, events };
 }
 
+/** Signs and sends one function call; returns the raw RPC transaction outcome. Lets the web app
+ * route writes through a browser wallet (wallet-selector) instead of a local key. */
+export type TxSender = (call: {
+  receiverId: string;
+  methodName: string;
+  args: Record<string, unknown>;
+  gas: bigint;
+  deposit: bigint;
+}) => Promise<any>;
+
 export interface BasisClientOptions {
   rpcUrl: string;
   contractId: string;
   tokenId: string;
   account?: Account;
+  sender?: TxSender;
+  signerId?: string;
 }
 
 export class BasisClient {
@@ -106,11 +119,16 @@ export class BasisClient {
   /** Execution wait level; EXECUTED_OPTIMISTIC waits for every receipt (cross-contract included). */
   waitUntil: "EXECUTED_OPTIMISTIC" | "FINAL" = "EXECUTED_OPTIMISTIC";
 
+  sender?: TxSender;
+  signerId?: string;
+
   constructor(opts: BasisClientOptions) {
     this.provider = new JsonRpcProvider({ url: opts.rpcUrl });
     this.contractId = opts.contractId;
     this.tokenId = opts.tokenId;
     this.account = opts.account;
+    this.sender = opts.sender;
+    this.signerId = opts.signerId ?? opts.account?.accountId;
   }
 
   withAccount(account: Account): BasisClient {
@@ -128,17 +146,20 @@ export class BasisClient {
     args: Record<string, unknown> = {},
     opts: { gas?: bigint; deposit?: bigint; contractId?: string; allowFailure?: boolean } = {},
   ): Promise<TxResult<T>> {
-    if (!this.account) throw new Error("BasisClient: no signing account");
+    if (!this.account && !this.sender) throw new Error("BasisClient: no signing account or wallet");
     let raw: any;
     try {
-      raw = await this.account.callFunctionRaw({
-        contractId: opts.contractId ?? this.contractId,
-        methodName: method,
-        args,
-        gas: opts.gas ?? 300n * TGAS,
-        deposit: opts.deposit ?? 0n,
-        waitUntil: this.waitUntil,
-      });
+      const call = { receiverId: opts.contractId ?? this.contractId, methodName: method, args, gas: opts.gas ?? 300n * TGAS, deposit: opts.deposit ?? 0n };
+      raw = this.sender
+        ? await this.sender(call)
+        : await this.account!.callFunctionRaw({
+            contractId: call.receiverId,
+            methodName: call.methodName,
+            args: call.args,
+            gas: call.gas,
+            deposit: call.deposit,
+            waitUntil: this.waitUntil,
+          });
     } catch (e: any) {
       const msg = String(e?.message ?? e);
       const panic = msg.match(/Smart contract panicked: (.*)/)?.[1] ?? msg;
