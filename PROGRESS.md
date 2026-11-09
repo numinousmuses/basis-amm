@@ -87,3 +87,8 @@ labeled deterministic mock executor (spec section 11 "hackathon minimum").
   crypto 10%, election 25%, Fed 15%, sports 50%. Tests: live suite services/basis-node/test/polymarket-live.test.ts (BASIS_LIVE_TESTS=1) 5/5;
   tests/e2e/test/lifecycle.test.ts 3/3. Testnet v3 stack: core.basisv349012.testnet (infra/testnet/v3-stack.secret.json).
   Dashboard additions DELEGATED to a background agent (commits apps/web, video/footage only). Next: testnet Polymarket demo script, docs, video re-render.
+- 2026-11-09 14:30 ET: round 3 DONE. Testnet live-Polymarket demo on core.basisv349012.testnet (docs/integration-proofs/README.md).
+  Dashboard: hedge executor page, live market support, resolution + TEE panels, ramp display, admit form (web 51 unit + 14 Playwright).
+  Video re-rendered (112 s) with live segment; release v0.3.0 (executor-tee.wasm, oracle-tee.wasm, video). Local dev stack stopped.
+  Not done (needs Joshua): real-money live mode (funded deposit wallet, builder key, approval), OutLayer deployment of both TEE programs,
+  bridge between NEAR collateral and Polygon pUSD, recalibration on real order-book history.
