@@ -1,0 +1,134 @@
+[
+  {
+    "entry": "500000",
+    "equity_at_060": "200000000",
+    "ev": "200000000",
+    "hold_fee_1000bps_30d": "3287672",
+    "leverage": "50000",
+    "liq_price_500bps": "421052",
+    "margin": "100000000",
+    "max_profit": "500000000",
+    "notional": "500000000",
+    "open_fee_10bps": "500000",
+    "premium_full": "200000000",
+    "probs": [
+      "500000",
+      "500000"
+    ],
+    "profit_at_1": "500000000",
+    "scenario_pnl_0": "-100000000",
+    "shares_after": "90917347",
+    "shares_first": "100000000",
+    "units": "1000000000"
+  },
+  {
+    "entry": "800000",
+    "equity_at_060": "0",
+    "ev": "80000000",
+    "hold_fee_1000bps_30d": "3287672",
+    "leverage": "50000",
+    "liq_price_500bps": "673684",
+    "margin": "100000000",
+    "max_profit": "125000000",
+    "notional": "500000000",
+    "open_fee_10bps": "500000",
+    "premium_full": "80000000",
+    "probs": [
+      "800000",
+      "200000"
+    ],
+    "profit_at_1": "125000000",
+    "scenario_pnl_0": "-100000000",
+    "shares_after": "90917347",
+    "shares_first": "100000000",
+    "units": "625000000"
+  },
+  {
+    "entry": "333333",
+    "equity_at_060": "850001350",
+    "ev": "333333500",
+    "hold_fee_1000bps_30d": "4109590",
+    "leverage": "30000",
+    "liq_price_500bps": "233917",
+    "margin": "250000000",
+    "max_profit": "1500002250",
+    "notional": "750000000",
+    "open_fee_10bps": "750000",
+    "premium_full": "333333500",
+    "probs": [
+      "333333",
+      "666667"
+    ],
+    "profit_at_1": "1500002250",
+    "scenario_pnl_0": "-250000000",
+    "shares_after": "227293369",
+    "shares_first": "250000000",
+    "units": "2250002250"
+  },
+  {
+    "entry": "71000",
+    "equity_at_060": "24230546",
+    "ev": "1720369",
+    "hold_fee_1000bps_30d": "15221",
+    "leverage": "25000",
+    "liq_price_500bps": "44842",
+    "margin": "1234567",
+    "max_profit": "40384244",
+    "notional": "3086417",
+    "open_fee_10bps": "3087",
+    "premium_full": "1720369",
+    "probs": [
+      "71000",
+      "929000"
+    ],
+    "profit_at_1": "40384244",
+    "scenario_pnl_0": "-1234567",
+    "shares_after": "1122435",
+    "shares_first": "1234567",
+    "units": "43470661"
+  },
+  {
+    "entry": "950000",
+    "equity_at_060": "0",
+    "ev": "4500000",
+    "hold_fee_1000bps_30d": "739727",
+    "leverage": "100000",
+    "liq_price_500bps": "900000",
+    "margin": "10000000",
+    "max_profit": "5263157",
+    "notional": "100000000",
+    "open_fee_10bps": "100000",
+    "premium_full": "4500000",
+    "probs": [
+      "950000",
+      "50000"
+    ],
+    "profit_at_1": "5263157",
+    "scenario_pnl_0": "-10000000",
+    "shares_after": "9091734",
+    "shares_first": "10000000",
+    "units": "105263157"
+  },
+  {
+    "entry": "10000",
+    "equity_at_060": "11899881000000",
+    "ev": "98999010000",
+    "hold_fee_1000bps_30d": "821909590",
+    "leverage": "20000",
+    "liq_price_500bps": "5263",
+    "margin": "99999000000",
+    "max_profit": "19799802000000",
+    "notional": "199998000000",
+    "open_fee_10bps": "199998000",
+    "premium_full": "98999010000",
+    "probs": [
+      "10000",
+      "990000"
+    ],
+    "profit_at_1": "19799802000000",
+    "scenario_pnl_0": "-99999000000",
+    "shares_after": "90916438692",
+    "shares_first": "99999000000",
+    "units": "19999800000000"
+  }
+]

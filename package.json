@@ -1,0 +1,15 @@
+{
+  "name": "basis-amm",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.0.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build:contracts": "bash scripts/build-contracts.sh",
+    "test:rust": "cargo test --workspace --exclude near-sandbox-tests",
+    "test:ts": "pnpm -r --filter ./packages/** --filter ./services/** test",
+    "test:e2e": "pnpm --filter @basis/e2e test",
+    "dev": "bash scripts/dev.sh",
+    "typecheck": "pnpm -r typecheck"
+  }
+}
