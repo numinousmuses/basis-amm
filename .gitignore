@@ -14,3 +14,4 @@ dist/
 /playwright-report/
 *.secret.json
 research/out/
+video/out/*.png

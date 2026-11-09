@@ -17,6 +17,8 @@ export interface NodeOptions {
   feed?: Feed;
   devControls?: boolean;
   exposeDevKeys?: boolean;
+  /** Testnet: push marks only where NAV needs them (gas costs real testnet NEAR). */
+  lean?: boolean;
   intervals?: Partial<Record<"oracle" | "orders" | "positions" | "settlement" | "executor" | "reconciler" | "events" | "marks" | "vault", number>>;
 }
 
@@ -24,12 +26,12 @@ export async function startNode(stack: DeployedStack, o: NodeOptions = {}) {
   const feed = o.feed ?? new MockFeed();
   const ctx = makeContext(stack, feed);
   const store = new Store(o.dbPath ?? ":memory:");
-  const oracle = new OracleWorker(ctx);
+  const oracle = new OracleWorker(ctx, { lean: o.lean, pushEveryMs: 180_000 });
   const keeper = new Keeper(ctx, oracle);
   const executor = new MockExecutor(ctx, oracle, store);
   const reconciler = new Reconciler(ctx, executor);
   const indexer = new Indexer(ctx, store, oracle);
-  const quotes = new QuoteEngine(ctx);
+  const quotes = new QuoteEngine(ctx, oracle);
   const iv = { oracle: 5000, orders: 1000, positions: 4000, settlement: 4000, executor: 1500, reconciler: 15000, events: 1500, marks: 1000, vault: 10000, ...o.intervals };
   const err = (svc: string) => (e: unknown) => log("warn", svc, "tick failed", { err: String((e as any)?.message ?? e) });
   await oracle.tick().catch(err("oracle"));
@@ -44,7 +46,7 @@ export async function startNode(stack: DeployedStack, o: NodeOptions = {}) {
     loop("marks", iv.marks, async () => indexer.tickMarks(), err("indexer")),
     loop("vault", iv.vault, () => indexer.tickVault(), err("indexer")),
   ];
-  const server = startApi({ ctx, store, indexer, keeper, executor, reconciler, quotes, devControls: o.devControls ?? false, exposeDevKeys: o.exposeDevKeys ?? false, startedAt: Date.now() }, o.port ?? 8797);
+  const server = startApi({ ctx, store, oracle, indexer, keeper, executor, reconciler, quotes, devControls: o.devControls ?? false, exposeDevKeys: o.exposeDevKeys ?? false, startedAt: Date.now() }, o.port ?? 8797);
   return {
     ctx,
     store,

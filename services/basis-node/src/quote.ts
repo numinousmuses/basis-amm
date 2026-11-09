@@ -7,6 +7,7 @@ import { sha256 } from "@noble/hashes/sha256";
 import { bytesToHex } from "@noble/hashes/utils";
 import { LEV_SCALE, type OpenPreview } from "@basis/sdk";
 import type { NodeContext } from "./context.js";
+import type { OracleWorker } from "./oracle.js";
 
 export interface QuoteRequest {
   market_id: string;
@@ -31,9 +32,17 @@ export interface Quote {
 export class QuoteEngine {
   private secret = ed25519.utils.randomPrivateKey();
   readonly publicKey = bytesToHex(ed25519.getPublicKey(this.secret));
-  constructor(readonly ctx: NodeContext) {}
+  constructor(
+    readonly ctx: NodeContext,
+    readonly oracle?: OracleWorker,
+  ) {}
 
   async quote(q: QuoteRequest): Promise<Quote> {
+    // Lean mode: make sure the contract holds a recent mark so preview_open is not stale.
+    if (this.oracle?.opts.lean) {
+      const m = await this.ctx.anon.getMarket(q.market_id);
+      if (m) await this.oracle.ensureOnchain(m, 60_000).catch(() => {});
+    }
     const margin = BigInt(q.margin);
     const lev = BigInt(q.leverage);
     const pv = await this.ctx.anon.previewOpen(q.market_id, q.outcome_id, margin, lev);

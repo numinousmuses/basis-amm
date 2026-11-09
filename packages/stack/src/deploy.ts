@@ -1,7 +1,7 @@
 /** Deploy and configure a full Basis-AMM stack (token + core + roles + reporters + markets +
  * liquidity) on any NEAR network where `master` can create sub-accounts: the local sandbox or
  * testnet. The same code path is used by the e2e suite and the testnet deployment script. */
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Account, JsonRpcProvider, KeyPair } from "near-api-js";
 import {
@@ -82,6 +82,8 @@ export interface DeployOptions {
   faucetLimitUsd?: bigint;
   reporterSecrets?: DeployedStack["reporterSecrets"];
   log?: (msg: string) => void;
+  /** Written after every account creation so generated keys survive a failed deploy. */
+  checkpointPath?: string;
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -118,6 +120,7 @@ export async function deployStack(o: DeployOptions): Promise<DeployedStack> {
     const r: any = await master.createAccount({ newAccountId: accountId, publicKey: kp.getPublicKey().toString(), nearToTransfer: amount } as any);
     txs[`create:${name}`] = r?.transaction?.hash ?? "";
     accounts[name] = { accountId, secretKey: kp.toString() };
+    if (o.checkpointPath) writeFileSync(o.checkpointPath, JSON.stringify({ master: o.master.accountId, accounts }, null, 2));
     log(`created ${accountId}`);
   }
   const acct = (n: RoleName) => accountFor(o.rpcUrl, accounts[n]);

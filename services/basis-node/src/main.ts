@@ -55,6 +55,7 @@ async function main() {
     feed: new MockFeed(Number(opt("seed", "42")), Number(opt("volatility", "0.004"))),
     devControls: flag("dev-controls") || flag("sandbox"),
     exposeDevKeys: stack.network === "sandbox",
+    lean: flag("lean") || stack.network === "testnet",
   });
   log("info", "main", "basis-node running", { network: stack.network, contract: stack.contractId, rpc: stack.rpcUrl });
   const shutdown = async () => {

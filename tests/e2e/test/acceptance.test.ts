@@ -62,6 +62,7 @@ const TARGET = process.env.BASIS_TARGET ?? "sandbox";
 beforeAll(async () => {
   let stack;
   if (TARGET === "testnet") {
+    mkdirSync(join(REPO_ROOT, "infra/testnet"), { recursive: true });
     const master = loadLegacyCredential(process.env.BASIS_TESTNET_MASTER!);
     stack = await deployStack({
       network: "testnet",
@@ -73,6 +74,7 @@ beforeAll(async () => {
       userUsd: 20_000n,
       faucetLimitUsd: 100_000n,
       log: (m) => console.log(m),
+      checkpointPath: join(REPO_ROOT, "infra/testnet/acceptance-keys.checkpoint.secret.json"),
     });
     mkdirSync(join(REPO_ROOT, "infra/testnet"), { recursive: true });
     writeFileSync(join(REPO_ROOT, "infra/testnet/acceptance-stack.secret.json"), JSON.stringify(stack, null, 2));

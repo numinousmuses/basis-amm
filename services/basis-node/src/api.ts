@@ -11,6 +11,7 @@ import type { Indexer } from "./indexer.js";
 import type { Keeper } from "./keeper.js";
 import type { MockExecutor, Reconciler } from "./executor.js";
 import type { QuoteEngine } from "./quote.js";
+import type { OracleWorker } from "./oracle.js";
 import { MockFeed, discoverPolymarket } from "./feeds.js";
 import { log } from "./log.js";
 
@@ -22,6 +23,7 @@ export interface ApiDeps {
   executor: MockExecutor;
   reconciler: Reconciler;
   quotes: QuoteEngine;
+  oracle: OracleWorker;
   devControls: boolean;
   exposeDevKeys: boolean;
   startedAt: number;
@@ -46,6 +48,15 @@ async function body(req: IncomingMessage): Promise<any> {
 
 export function startApi(d: ApiDeps, port: number) {
   const { ctx, store } = d;
+  /** Newer of the onchain stored mark and the worker's latest signed (not yet pushed) mark. */
+  const freshest = (id: string, onchain: any) => {
+    const off = d.oracle.latest.get(id);
+    const onTs = onchain ? BigInt(onchain.report.source_timestamp_ns) : 0n;
+    if (off && BigInt(off.report.source_timestamp_ns) > onTs) {
+      return { mark: { report: off.report, reporter: off.public_key, stored_ns: "0" }, mark_source: "signed-offchain" };
+    }
+    return { mark: onchain, mark_source: onchain ? "onchain" : null };
+  };
   const routes: Array<[string, RegExp, (m: RegExpMatchArray, req: IncomingMessage, url: URL) => Promise<unknown>]> = [
     ["GET", /^\/api\/health$/, async () => ({ ok: true, uptime_s: Math.round((Date.now() - d.startedAt) / 1000), keeper: d.keeper.stats, last_seq: store.lastSeq() })],
     [
@@ -73,7 +84,7 @@ export function startApi(d: ApiDeps, port: number) {
             const id = m.descriptor.market_id;
             const [mark, actions, risk, policy] = await Promise.all([ctx.anon.getMark(id), ctx.anon.getEffectiveActions(id), ctx.anon.getRiskSummary(id), m.policy_hash ? ctx.anon.getPolicy(m.policy_hash) : null]);
             const dayAgo = store.marks(id, Date.now() - 24 * 3600_000, 1)[0];
-            return { market: m, mark, actions, risk, policy, mid_24h_ago: dayAgo?.mids ?? null };
+            return { market: m, ...freshest(id, mark), actions, risk, policy, mid_24h_ago: dayAgo?.mids ?? null };
           }),
         );
       },
@@ -94,7 +105,7 @@ export function startApi(d: ApiDeps, port: number) {
           ctx.anon.getResolution(id),
           ctx.anon.getHedgeFills(id),
         ]);
-        return { market, mark, actions, risk, policy, policy_history: history, resolution, hedge_fills: fills };
+        return { market, ...freshest(id, mark), actions, risk, policy, policy_history: history, resolution, hedge_fills: fills };
       },
     ],
     ["GET", /^\/api\/markets\/([^/]+)\/marks$/, async (m, _r, u) => store.marks(decodeURIComponent(m[1]), Number(u.searchParams.get("since") ?? Date.now() - 6 * 3600_000), Number(u.searchParams.get("limit") ?? 500))],

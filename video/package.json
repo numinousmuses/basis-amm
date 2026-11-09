@@ -1,0 +1,22 @@
+{
+  "name": "@basis/video",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Remotion demo video for Basis-AMM, built from real app footage",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render BasisDemo out/basis-amm-demo.mp4",
+    "still": "remotion still BasisDemo out/poster.png --frame=120",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.541",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.541"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "typescript": "5.9.3"
+  }
+}
