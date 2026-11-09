@@ -43,8 +43,8 @@ labeled deterministic mock executor (spec section 11 "hackathon minimum").
 ## Milestones
 
 - [x] M0 toolchain: rustup 1.99.1, wasm32 target, cargo-near 0.23.0, near-cli-rs 0.31.1
-- [ ] M1 basis-math crate + property tests + test vectors
-- [ ] M2 basis-core contract (registry, vault/bLP NEP-141, margin, oracle, insurance) + mock-usdc
+- [x] M1 basis-math crate + property tests + test vectors (37 tests; TS parity via crates/basis-math/vectors)
+- [x] M2 basis-core contract (registry, vault/bLP NEP-141, margin, oracle, hedge, insurance, views) + mock-usdc; builds via scripts/build-contracts.sh -> out/*.wasm
 - [ ] M3 near-workspaces sandbox integration tests covering spec section 11 E2E items 1-12
 - [ ] M4 TS sdk + services (oracle, quote, keeper, mock executor, reconciler, indexer, PM adapter)
 - [ ] M5 web app (10 pages) wired to contract + services
@@ -57,3 +57,8 @@ labeled deterministic mock executor (spec section 11 "hackathon minimum").
 ## Log
 
 - 2026-11-08 21:40 ET: repo initialised, spec + mockup copied to docs/spec, toolchain installed.
+- 2026-11-08 23:15 ET: SDK (packages/sdk) + stack (packages/stack: sandbox runner, deployStack, MockVenue) done.
+  Sandbox: ~/.local/share/basis-amm/near-sandbox (nearcore 2.14.0) needs DYLD_LIBRARY_PATH=~/.local/share/basis-amm/xz/lib
+  (built xz from source; infra/local-dev/install-sandbox.sh reproduces). Smoke deploy test passes (tests/e2e/test/smoke.test.ts, ~100s).
+  Next: tests/e2e acceptance suite (spec section 11 items 1-12 + adversarial), then services, web, testnet.
+  Fair-value gate: policy floor_coverage_bps (5% provisional) of hold-to-resolution floor EV; $0.80 item 11 runs on pm-gold-above-3000 with zero-spread book so EV is exactly $80.
