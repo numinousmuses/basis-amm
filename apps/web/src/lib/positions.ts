@@ -60,8 +60,8 @@ export interface PnlPoint {
 
 /** Cumulative realized P&L over close time. Each close adds a step: the line holds the previous
  * total until `closed_ns`, then jumps by that position's realized P&L. The series starts at zero at
- * the first closed position's open time. Positions without `closed_ns` are skipped and counted. */
-export function realizedPnlSeries(positions: Array<Pick<PositionView, "position">>): { points: PnlPoint[]; total: bigint; skipped: number } {
+ * the first closed position's open time and, with `untilMs`, holds the total until then. Positions without `closed_ns` are skipped and counted. */
+export function realizedPnlSeries(positions: Array<Pick<PositionView, "position">>, untilMs?: number): { points: PnlPoint[]; total: bigint; skipped: number } {
   const closed = positions.map((v) => v.position).filter((p) => p.state !== "Open");
   const timed = closed.filter((p) => p.closed_ns !== null && p.closed_ns !== undefined && big(p.closed_ns) > 0n).sort((a, b) => (big(a.closed_ns!) < big(b.closed_ns!) ? -1 : big(a.closed_ns!) > big(b.closed_ns!) ? 1 : 0));
   const skipped = closed.length - timed.length;
@@ -75,5 +75,7 @@ export function realizedPnlSeries(positions: Array<Pick<PositionView, "position"
     total += big(p.realized_pnl);
     points.push({ x, y: total, positionId: p.position_id });
   }
+  // Optional flat tail to `untilMs` (e.g. now) so a single close still reads as a level.
+  if (untilMs !== undefined && untilMs > points[points.length - 1].x) points.push({ x: untilMs, y: total });
   return { points, total, skipped };
 }

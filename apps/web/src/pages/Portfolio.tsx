@@ -27,7 +27,7 @@ export function PortfolioPage() {
   const equity = open.reduce((s, p) => s + big(p.equity_at_bid), 0n);
   const upnl = open.reduce((s, p) => s + big(p.unrealized_pnl), 0n);
   const realized = done.reduce((s, p) => s + big(p.position.realized_pnl), 0n);
-  const pnl = realizedPnlSeries(done);
+  const pnl = realizedPnlSeries(done, Date.now());
   const price = big(vault.data?.share_price ?? "1000000");
   const blpValue = (big(a.blp) * price) / 1_000_000n;
   const wallet = big(a.usdc);
@@ -65,8 +65,7 @@ export function PortfolioPage() {
             zeroLine
             testId="pnl-chart"
             emptyText={done.length ? "One closed position so far" : "No closed positions yet"}
-            label={<span className={pnl.total >= 0n ? "green" : "red"} style={{ fontSize: 15 }}>{signedUsd(pnl.total)}</span>}
-            sub="Cumulative realized P&L by close time"
+            label={<span style={{ fontSize: 13, color: "#888" }}>Cumulative realized P&L by close time</span>}
           />
           {pnl.points.length > 0 && (
             <div className="rangeLabels" style={{ marginTop: 6 }}>

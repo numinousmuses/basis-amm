@@ -122,7 +122,11 @@ function Shell() {
             <span data-testid="network">
               NEAR {app.stack.network} <span style={{ color: "#26a474" }}>●</span>
             </span>
-            {app.stack.simulatedVenue && <span className="chip sim">Mock venue prices</span>}
+            {app.stack.simulatedVenue && (
+              <span className="chip sim" title="Fixture markets price from the deterministic mock venue; each market is labeled mock venue or Live Polymarket">
+                Mock venue fixtures
+              </span>
+            )}
             <button className="pill" onClick={() => setWalletOpen(true)} data-testid="wallet-button">
               {app.accountId ? `${app.accountId} ⌄` : "Connect wallet"}
             </button>

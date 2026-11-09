@@ -34,3 +34,31 @@ The run used an isolated stack, because the demo resolves a market and that cann
 | `20-activity-audit-log.png` | Activity: the contract's sequenced audit events, simulated fills labeled |
 | `21-portfolio-after-settlement.png` | Portfolio after the settlement payout landed in the wallet |
 | `demo-walkthrough.webm` | Screen recording of the whole run above, 1600x1000 |
+
+## Live Polymarket, hedging, resolution and TEE (22 onward)
+
+Captured with `CAPTURE=extras`, which leaves 01-21 alone. It admits a real Polymarket market
+(read-only from polymarket.com, so it needs internet) and resolves a mock market, so it ran on its
+own isolated stack:
+
+    cd services/basis-node && npx tsx src/main.ts --sandbox --data /tmp/basis-web-stack2 --rpc-port 3042 --port 8842
+    BASIS_API=http://127.0.0.1:8842 CAPTURE=extras pnpm --filter @basis/web capture
+
+`LIVE_SLUG=<polymarket slug>` picks the live market; by default the script takes the first binary
+market in the top 30 by 24h volume that trades between 12c and 88c and resolves more than 14 days
+out. The hedge venue for live markets is PAPER: fills are priced against the live Polymarket book,
+no order is placed, and every receipt is labeled `paper`. Mock fixture fills are labeled `sim`.
+
+| File | What it shows |
+| --- | --- |
+| `22-admin-admit-live-form.png` | Admin console, Live Polymarket tab: top 30 live markets with prices and protocol version, one picked, family and HEDGE_REQUIRED strategy set |
+| `23-admin-admit-live-result.png` | Admission done through the timelocked governance path: new market id, admin propose tx and risk-council approve tx |
+| `24-trade-live-polymarket-market.png` | The admitted market's trade page: Live Polymarket chip, mark source `polygon:137:polymarket-clob`, link to the Polymarket event, live quote |
+| `25-trade-live-polymarket-book.png` | The live Polymarket CLOB book from the signed mark |
+| `26-hedging-after-hedged-trade.png` | Hedge executor page after two HEDGE_REQUIRED opens: PAPER mode banner, no executor key, custody equal to the contract's hedge_units, reconciliation matches |
+| `27-hedging-fills-and-receipts.png` | Executor ledger fills (one `paper` fill on the live market, one `sim` fill on the ETH fixture) and the contract's hedge fill receipts |
+| `28-resolution-panel-proposal.png` | Resolution panel on a mock market after a dev resolution: Pending, scenario, quorum time, finalize-after countdown, both reporters with report ids and source hashes |
+| `29-resolution-panel-live-observations.png` | Resolution panel on the live market: no proposal yet, plus the resolver's two sources (Polymarket resolution API and the Conditional Tokens contract on Polygon) |
+| `30-tee-panel.png` | Risk monitor TEE panel: require_attested_marks off on this sandbox, no pinned TEE programs, every reporter unattested, no TEE executor keys |
+| `31-positions-maintenance-ramp.png` | Positions with effective maintenance and the pre-resolution ramp sentence for each position |
+| `live-hedging-walkthrough.webm` | Screen recording of steps 22 to 31, 1600x1000 |

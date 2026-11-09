@@ -57,6 +57,16 @@ describe("cumulative realized P&L series", () => {
     ]);
     expect(r.points.at(-1)?.positionId).toBe("3");
   });
+  it("holds the total until untilMs", () => {
+    const r = realizedPnlSeries([pos("1", "Closed", 100, 200, "-1230000")], 500_000);
+    expect(r.points.map((p) => [p.x / 1000, Number(p.y) / 1e6])).toEqual([
+      [100, 0],
+      [200, 0],
+      [200, -1.23],
+      [500, -1.23],
+    ]);
+    expect(realizedPnlSeries([pos("1", "Closed", 100, 200, "1")], 150_000).points).toHaveLength(3);
+  });
   it("is empty with no closed positions and counts closes without a time", () => {
     expect(realizedPnlSeries([pos("1", "Open", 1, null, "0")])).toEqual({ points: [], total: 0n, skipped: 0 });
     const r = realizedPnlSeries([pos("1", "Liquidated", 1, null, "-1"), pos("2", "Closed", 5, 10, "2000000")]);

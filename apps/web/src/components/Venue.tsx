@@ -52,7 +52,7 @@ export function TxRef({ hash, simulated }: { hash: string | null | undefined; si
         <span className="chip sim" data-testid="tx-paper">
           paper
         </span>{" "}
-        <span className="code">{shortHash(t.hash.replace(/^paper:/, ""), 6)}</span>
+        <span className="code">{shortHash(t.hash, 10)}</span>
       </span>
     );
   if (t.kind === "sim")
@@ -61,7 +61,7 @@ export function TxRef({ hash, simulated }: { hash: string | null | undefined; si
         <span className="chip sim" data-testid="tx-sim">
           sim
         </span>{" "}
-        <span className="code">{shortHash(t.hash.replace(/^sim:/, ""), 6)}</span>
+        <span className="code">{shortHash(t.hash, 10)}</span>
       </span>
     );
   return <span className="code">{t.hash ? shortHash(t.hash, 10) : "n/a"}</span>;
