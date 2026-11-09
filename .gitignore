@@ -1,0 +1,14 @@
+target/
+node_modules/
+dist/
+.env
+.env.*
+*.log
+.DS_Store
+/out/
+/apps/web/dist/
+/video/out/
+/.near-credentials/
+/infra/local-dev/data/
+/test-results/
+/playwright-report/
