@@ -1,0 +1,12 @@
+[package]
+name = "basis-math"
+description = "Fixed-point payoff, reserve, stress, fee and fair-value math for Basis-AMM"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+
+[dev-dependencies]
+proptest = "1"
+serde_json = "1"
