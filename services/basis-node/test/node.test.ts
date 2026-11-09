@@ -130,6 +130,13 @@ describe("basis-node automation", () => {
       return r[ETH];
     });
     expect(rec.ok).toBe(true);
+    // Closing the hedged position makes the executor sell its shares back (unwind).
+    await bob.requestClose(pos.position.position_id, 1_000_000n, 0n, nowNs() + 60_000_000_000n);
+    await until("closed", async () => (await bob.getPosition(pos.position.position_id))?.position.state === "Closed");
+    await until("unwound", async () => (await bob.getRiskSummary(ETH)).hedge_units.every((u) => u === "0"));
+    const sells = (await bob.getHedgeFills(ETH)).filter((f) => !f.side_buy);
+    expect(sells.length).toBe(1);
+    expect(sells[0].simulated).toBe(true);
   });
 
   it("keeper fires a take-profit and liquidates a losing position after mock price moves", async () => {
