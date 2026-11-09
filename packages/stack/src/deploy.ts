@@ -53,6 +53,7 @@ export function sandboxConfig(over: Partial<ProtocolConfig> = {}): ProtocolConfi
     event_log_capacity: 4000,
     require_attested_marks: false,
     tee: null,
+    tee_executor: null,
     ...over,
   };
 }

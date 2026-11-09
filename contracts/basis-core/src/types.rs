@@ -146,6 +146,10 @@ pub struct MarketPolicy {
     pub max_hedge_slippage_bps: u16,
     pub min_fill_floor_ppm: U128,
     pub max_order_lifetime_ns: U64,
+    /// Maintenance rises linearly from `maintenance_bps` to this value over the `maintenance_ramp_ns`
+    /// before the descriptor's expected resolution. It only ever liquidates LOSING positions.
+    pub pre_resolution_maintenance_bps: u16,
+    pub maintenance_ramp_ns: U64,
     pub governance_approval: String,
     pub human_readable_rules: String,
 }
@@ -425,6 +429,11 @@ pub struct Position {
     pub quote_id: String,
     pub entry_report_id: String,
     pub hedge_fill_ids: Vec<String>,
+    /// Pre-resolution maintenance ramp pinned at open (spec "maintenance curve").
+    pub ramp_maintenance_bps: u16,
+    pub ramp_start_ns: U64,
+    pub ramp_end_ns: U64,
+    pub closed_ns: Option<U64>,
 }
 
 // ---------------------------------------------------------------- vault, hedge, insurance
@@ -509,6 +518,19 @@ pub struct ProtocolConfig {
     /// When true, MARK reports are accepted only from TEE-attested reporters.
     pub require_attested_marks: bool,
     pub tee: Option<TeeConfig>,
+    /// Pinned executor-tee build for the hedge executor's Polymarket session key.
+    pub tee_executor: Option<TeeConfig>,
+}
+
+/// A hedge-executor signing key registered through OutLayer for a pinned executor-tee build.
+#[near(serializers = [json, borsh])]
+#[derive(Clone, Debug)]
+pub struct TeeExecutorKey {
+    pub evm_address: String,
+    pub label: String,
+    pub wasm_hash: String,
+    pub registered_ns: U64,
+    pub active: bool,
 }
 
 #[near(serializers = [json, borsh])]
@@ -601,6 +623,7 @@ pub struct PositionView {
     pub max_profit: U128,
     pub max_payout: U128,
     pub liquidation_price: U128,
+    pub effective_maintenance_bps: u16,
     pub liquidatable: bool,
 }
 

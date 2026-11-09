@@ -485,7 +485,7 @@ describe("spec 11 E2E acceptance", () => {
     await expectFailure(x.c.bob.cancelOpen(o.orderId), "ORDER_NOT_CANCELLABLE");
     await x.c.executor.submitHedgeFill(receipt(o.orderId, 600n * D, 1));
     await x.c.executor.submitHedgeFill(receipt(o.orderId, 400n * D, 2));
-    await expectFailure(x.c.executor.submitHedgeFill(receipt(o.orderId, 1n * D, 3)), "overfill");
+    await expectFailure(x.c.executor.submitHedgeFill(receipt(o.orderId, 50n * D, 3)), "overfill"); // beyond the 2% tolerance
     expect((await x.c.anon.getOrder(o.orderId))!.state).toBe("HedgedProvisional");
     const fin = await x.c.keeper.finalizeOpenHedged(o.orderId);
     x.record("3b. HEDGE_REQUIRED finalized OPEN", fin);

@@ -17,6 +17,6 @@
     ]
   },
   "policy": {
-    "human_readable_rules": "Weekly crypto event. Max 4x. YES and NO are both offered as exact outcome claims; every fill is against the vault, never another trader."
+    "human_readable_rules": "Weekly crypto event. Max 4x. YES and NO are both offered as exact outcome claims; every fill is against the vault, never another trader. Before resolution, maintenance for losing positions ramps to 50%."
   }
 }

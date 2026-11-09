@@ -12,6 +12,8 @@ import type { Keeper } from "./keeper.js";
 import type { MockExecutor, Reconciler } from "./executor.js";
 import type { QuoteEngine } from "./quote.js";
 import type { OracleWorker } from "./oracle.js";
+import type { PolymarketResolver } from "./polymarket/resolution.js";
+import { createPublicClient as pmClient } from "@polymarket/client";
 import { MockFeed, discoverPolymarket } from "./feeds.js";
 import { log } from "./log.js";
 
@@ -24,6 +26,7 @@ export interface ApiDeps {
   reconciler: Reconciler;
   quotes: QuoteEngine;
   oracle: OracleWorker;
+  resolver: PolymarketResolver;
   devControls: boolean;
   exposeDevKeys: boolean;
   cacheTtlMs?: number;
@@ -134,6 +137,32 @@ export function startApi(d: ApiDeps, port: number) {
     ["POST", /^\/api\/quote$/, async (_m, req) => d.quotes.quote(await body(req))],
     ["GET", /^\/api\/reconciliation$/, async () => Object.fromEntries(d.reconciler.lastReport)],
     ["GET", /^\/api\/executor\/fills$/, async () => store.fills()],
+    [
+      "GET",
+      /^\/api\/polymarket\/status$/,
+      async () => {
+        const venue = d.executor.polymarketVenue;
+        const signer: any = (venue as any)?.o?.signer;
+        return {
+          venue: venue?.name ?? null,
+          simulated: venue?.simulated ?? true,
+          executor_address: signer?.getAddress ? await signer.getAddress().catch(() => null) : null,
+          signer_audit: signer?.audit?.slice(-20) ?? [],
+          spent_today_usd: store.spentToday(),
+          caps: venue && !venue.simulated ? { max_order_usd: (venue as any).o.maxOrderUsd, max_daily_usd: (venue as any).o.maxDailyUsd } : null,
+          resolutions: Object.fromEntries(d.resolver.last),
+          custody: Object.fromEntries([...d.executor.custody].map(([k, v]) => [k, v.map(String)])),
+        };
+      },
+    ],
+    [
+      "GET",
+      /^\/api\/polymarket\/market\/([^/]+)$/,
+      async (m) => {
+        const c: any = pmClient();
+        return c.fetchMarket({ slug: decodeURIComponent(m[1]) });
+      },
+    ],
     ["GET", /^\/api\/manifests$/, async () => Object.values(loadExampleManifests()).map((m) => ({ manifest: m, chain: manifestToChain(m) }))],
     ["GET", /^\/api\/polymarket\/discover$/, async (_m, _r, u) => discoverPolymarket(Number(u.searchParams.get("limit") ?? 20))],
     [

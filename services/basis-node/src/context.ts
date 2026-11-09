@@ -15,6 +15,8 @@ export interface NodeContext {
   feeds: Map<string, Feed>;
   /** TEE oracle signer for markets with live Polymarket token ids (optional). */
   teeSigner?: import("./tee.js").MarkSigner;
+  /** Feed used for markets whose refs are live Polymarket ids (read-only CLOB books). */
+  liveFeed?: Feed;
 }
 
 export function makeContext(stack: DeployedStack, feed: Feed): NodeContext {

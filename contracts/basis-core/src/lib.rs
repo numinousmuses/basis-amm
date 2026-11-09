@@ -130,6 +130,7 @@ pub struct Contract {
     pub(crate) frozen_markets: Vec<MarketId>,
     pub(crate) events: LookupMap<u64, AuditEvent>,
     pub(crate) next_event_seq: u64,
+    pub(crate) tee_executors: Vec<TeeExecutorKey>,
 }
 
 pub(crate) fn now() -> u64 {
@@ -239,6 +240,7 @@ impl Contract {
             frozen_markets: vec![],
             events: LookupMap::new(StorageKey::Events),
             next_event_seq: 1,
+            tee_executors: vec![],
         };
         c.validate_config(&c.config.clone());
         // The contract holds escrowed bLP for queued withdrawals.
@@ -443,6 +445,10 @@ impl Contract {
         require!((c.max_fee_bps_bound as u128) <= basis_math::BPS, "CONFIG: fee bound");
         require!(c.event_log_capacity >= 16, "CONFIG: event log capacity");
         require!(!c.require_attested_marks || c.tee.is_some(), "CONFIG: attested marks need a TEE config");
+        if let Some(t) = &c.tee_executor {
+            require!(t.wasm_hash.len() == 64 && hex_decode(&t.wasm_hash).is_some(), "CONFIG: tee executor wasm hash");
+            require!(t.wasm_url.starts_with("https://"), "CONFIG: tee executor wasm url");
+        }
         if let Some(t) = &c.tee {
             require!(t.wasm_hash.len() == 64 && hex_decode(&t.wasm_hash).is_some(), "CONFIG: tee wasm hash");
             require!(t.wasm_url.starts_with("https://"), "CONFIG: tee wasm url");

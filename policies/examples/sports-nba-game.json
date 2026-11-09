@@ -28,9 +28,10 @@
         "mode": "CloseOnly"
       }
     ],
-    "human_readable_rules": "In-play entry allowed while the executable book stays inside a 12-cent spread. CLOSE_ONLY during the final two minutes of play. Max 3x. The risk premium covers 55% of the hold-to-resolution floor value because one score can decide the event.",
+    "human_readable_rules": "In-play entry allowed while the executable book stays inside a 12-cent spread. CLOSE_ONLY during the final two minutes of play. Max 3x. The risk premium covers 50% of the hold-to-resolution floor value because one score can decide the event. Before resolution, maintenance for losing positions ramps to 50%.",
     "fees": {
-      "floor_coverage_bps": 5500
-    }
+      "floor_coverage_bps": 5000
+    },
+    "maintenance_ramp_s": 5400
   }
 }

@@ -191,7 +191,11 @@ impl Contract {
         // Units that cannot be sold at the book are valued at zero (conservative).
         let fees = pos.accrued_hold_fees.0;
         let equity_signed = terms.margin as i128 + sale.notional as i128 - terms.notional as i128 - fees as i128;
-        let req = math(basis_math::mul_div_ceil(sale.notional, pos.maintenance_bps as u128, basis_math::BPS)) + pos.maintenance_fixed.0;
+        // The pre-resolution ramp raises maintenance only for LOSING positions; a position in
+        // profit is never liquidated by it (no forced profitable close).
+        let losing = equity_signed < terms.margin as i128;
+        let mbps = if losing { effective_maintenance_bps(&pos, now()) } else { pos.maintenance_bps as u128 };
+        let req = math(basis_math::mul_div_ceil(sale.notional, mbps, basis_math::BPS)) + pos.maintenance_fixed.0;
         require!(equity_signed <= req as i128, "NOT_LIQUIDATABLE");
         let before_fees = basis_math::pos(terms.margin as i128 + sale.notional as i128 - terms.notional as i128);
         let hold_collected = fees.min(before_fees);
@@ -206,6 +210,7 @@ impl Contract {
         let pnl = to_user as i128 - terms.margin as i128;
         self.ledger.realized_trader_pnl += pnl;
         pos.state = PositionState::Liquidated;
+        pos.closed_ns = Some(U64(now()));
         pos.paid_out = U128(to_user);
         pos.realized_pnl = pnl.to_string();
         let owner = pos.owner.clone();
@@ -252,6 +257,7 @@ impl Contract {
             let pnl = payout as i128 - terms.margin as i128;
             self.ledger.realized_trader_pnl += pnl;
             pos.state = PositionState::Settled;
+            pos.closed_ns = Some(U64(now()));
             pos.paid_out = U128(payout);
             pos.realized_pnl = pnl.to_string();
             let owner = pos.owner.clone();
@@ -543,6 +549,10 @@ impl Contract {
             quote_id: intent.quote_id.clone(),
             entry_report_id: plan.report_id.clone(),
             hedge_fill_ids,
+            ramp_maintenance_bps: p.pre_resolution_maintenance_bps.max(p.maintenance_bps),
+            ramp_start_ns: U64(m.descriptor.expected_resolution_ns.0.saturating_sub(p.maintenance_ramp_ns.0)),
+            ramp_end_ns: m.descriptor.expected_resolution_ns,
+            closed_ns: None,
         };
         if o.mode != StrategyMode::HedgeRequired {
             self.book_apply(&intent.market_id, intent.outcome_id, &plan.terms, true);
@@ -627,6 +637,7 @@ impl Contract {
         let market_id = pos.market_id.clone();
         if remaining.units == 0 {
             pos.state = PositionState::Closed;
+            pos.closed_ns = Some(U64(now()));
         } else {
             pos.terms = from_terms(&remaining);
         }
@@ -779,4 +790,19 @@ impl Contract {
         mp.retain(|x| *x != pid);
         self.market_positions.insert(market_id.clone(), mp);
     }
+}
+
+/// Maintenance in force at `t`: the base rate until the ramp starts, then linear up to the ramp
+/// rate at expected resolution. Pinned at open, so later policy versions never change it.
+pub(crate) fn effective_maintenance_bps(p: &Position, t: u64) -> u128 {
+    let base = p.maintenance_bps as u128;
+    let top = (p.ramp_maintenance_bps as u128).max(base);
+    let (start, end) = (p.ramp_start_ns.0, p.ramp_end_ns.0);
+    if top == base || t <= start || end <= start {
+        return base;
+    }
+    if t >= end {
+        return top;
+    }
+    base + (top - base) * ((t - start) as u128) / ((end - start) as u128)
 }

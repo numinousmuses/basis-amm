@@ -397,8 +397,14 @@ impl Contract {
         let bid = self.marks.get(&p.market_id).map(|s| oracle::best_bid(oracle::outcome_book(&s.report, p.outcome_id)));
         let equity = bid.map(|b| math(terms.equity(b, fees)));
         let pnl = equity.map(|e| (e as i128 - terms.margin as i128).to_string());
+        let t = now();
+        let ramp = crate::margin::effective_maintenance_bps(&p, t);
         let liquidatable = match bid {
-            Some(b) if p.state == PositionState::Open => math(terms.is_liquidatable(b, fees, p.maintenance_bps as u128, p.maintenance_fixed.0)),
+            Some(b) if p.state == PositionState::Open => {
+                let losing = equity.map(|e| e < terms.margin).unwrap_or(false);
+                let mbps = if losing { ramp } else { p.maintenance_bps as u128 };
+                math(terms.is_liquidatable(b, fees, mbps, p.maintenance_fixed.0))
+            }
             _ => false,
         };
         PositionView {
@@ -408,7 +414,8 @@ impl Contract {
             pending_hold_fees: U128(pending),
             max_profit: U128(math(terms.max_profit(max_pay))),
             max_payout: U128(math(terms.max_payout(max_pay))),
-            liquidation_price: U128(math(terms.liquidation_price(fees, p.maintenance_bps as u128, p.maintenance_fixed.0))),
+            liquidation_price: U128(math(terms.liquidation_price(fees, ramp, p.maintenance_fixed.0))),
+            effective_maintenance_bps: ramp as u16,
             liquidatable,
             position: p,
         }

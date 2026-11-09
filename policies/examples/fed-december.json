@@ -31,9 +31,10 @@
         "mode": "CloseOnly"
       }
     ],
-    "human_readable_rules": "Three mutually exclusive outcomes priced from their exact payout vector. Max 3x. CLOSE_ONLY around the FOMC statement release. The risk premium covers 55% of the hold-to-resolution floor value.",
+    "human_readable_rules": "Three mutually exclusive outcomes priced from their exact payout vector. Max 3x. CLOSE_ONLY around the FOMC statement release. The risk premium covers 15% of the hold-to-resolution floor value. Before resolution, maintenance for losing positions ramps to 50%.",
     "fees": {
-      "floor_coverage_bps": 5500
-    }
+      "floor_coverage_bps": 1500
+    },
+    "maintenance_ramp_s": 604800
   }
 }

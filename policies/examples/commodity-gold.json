@@ -18,6 +18,7 @@
   },
   "policy": {
     "max_spread_bps": 800,
-    "human_readable_rules": "Commodity event admitted by manifest alone. Max 4x. The fair-price gate charges 15% of the hold-to-resolution floor value."
+    "human_readable_rules": "Commodity event admitted by manifest alone. Max 4x. The fair-price gate charges 15% of the hold-to-resolution floor value. Before resolution, maintenance for losing positions ramps to 50%.",
+    "maintenance_ramp_s": 604800
   }
 }

@@ -22,7 +22,7 @@ export interface MarkSigner {
 
 export function liveTokenIds(m: Market): string[] | null {
   const ids = m.descriptor.outcomes.map((o) => o.venue_token_ref.split(":").pop() ?? "");
-  return ids.every((t) => /^\d{10,}$/.test(t)) ? ids : null;
+  return ids.every((t) => /^\d{10,}$/.test(t)) && /^polygon:(ctf|pmv2):/.test(m.descriptor.outcomes[0].venue_token_ref) ? ids : null;
 }
 
 export function markRequest(m: Market, contractId: string, opts: { maxDivergenceBps?: number; validForS?: number } = {}) {

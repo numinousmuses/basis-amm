@@ -101,6 +101,8 @@ export interface MarketPolicy {
   max_hedge_slippage_bps: number;
   min_fill_floor_ppm: U128;
   max_order_lifetime_ns: U64;
+  pre_resolution_maintenance_bps: number;
+  maintenance_ramp_ns: U64;
   governance_approval: string;
   human_readable_rules: string;
 }
@@ -254,6 +256,10 @@ export interface Position {
   quote_id: string;
   entry_report_id: string;
   hedge_fill_ids: string[];
+  ramp_maintenance_bps: number;
+  ramp_start_ns: U64;
+  ramp_end_ns: U64;
+  closed_ns: U64 | null;
 }
 export interface PositionView {
   position: Position;
@@ -264,6 +270,7 @@ export interface PositionView {
   max_profit: U128;
   max_payout: U128;
   liquidation_price: U128;
+  effective_maintenance_bps: number;
   liquidatable: boolean;
 }
 export interface HedgeFillReceipt {
@@ -307,6 +314,14 @@ export interface ProtocolConfig {
   event_log_capacity: number;
   require_attested_marks: boolean;
   tee: TeeConfig | null;
+  tee_executor: TeeConfig | null;
+}
+export interface TeeExecutorKey {
+  evm_address: string;
+  label: string;
+  wasm_hash: string;
+  registered_ns: U64;
+  active: boolean;
 }
 export interface Roles {
   admin: string;

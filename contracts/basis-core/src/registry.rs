@@ -207,6 +207,10 @@ impl Contract {
             require!(w.start_ns.0 <= w.end_ns.0, "POLICY: event window");
         }
         require!(p.max_order_lifetime_ns.0 > 0, "POLICY: order lifetime");
+        require!(
+            p.pre_resolution_maintenance_bps == 0 || (p.pre_resolution_maintenance_bps >= p.maintenance_bps && (p.pre_resolution_maintenance_bps as u128) < BPS),
+            "POLICY: pre-resolution maintenance"
+        );
         if p.strategy != StrategyMode::PoolOnly {
             require!(p.hedge_budget_bps > 0, "POLICY: hedge strategy needs a hedge budget");
         }

@@ -51,7 +51,7 @@
       "hold_apr_bps": 1000,
       "liquidation_reward_bps": 500,
       "liquidation_reward_cap_usd": "5",
-      "floor_coverage_bps": 1500,
+      "floor_coverage_bps": 1000,
       "insurance_share_bps": 2000,
       "treasury_share_bps": 1000
     },
@@ -61,6 +61,8 @@
     "min_fill_floor_pct": "10",
     "max_order_lifetime_s": 600,
     "governance_approval": "PROVISIONAL testnet policy; requires product-owner approval before real funds",
-    "human_readable_rules": ""
+    "human_readable_rules": "",
+    "pre_resolution_maintenance_bps": 5000,
+    "maintenance_ramp_s": 172800
   }
 }

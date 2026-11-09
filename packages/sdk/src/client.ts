@@ -22,6 +22,7 @@ import type {
   Roles,
   SignedReport,
   StoredMark,
+  TeeExecutorKey,
   VaultSummary,
   Withdrawal,
 } from "./types.js";
@@ -388,6 +389,10 @@ export class BasisClient {
   requestTeeReporter(label: string, canMark: boolean, canResolve: boolean, deposit: bigint) {
     return this.call<string>("request_tee_reporter", { label, can_mark: canMark, can_resolve: canResolve }, { deposit, gas: 300n * TGAS });
   }
+  requestTeeExecutor(label: string, deposit: bigint) {
+    return this.call<string>("request_tee_executor", { label }, { deposit, gas: 300n * TGAS });
+  }
+  getTeeExecutors = () => this.view<TeeExecutorKey[]>("get_tee_executors");
   registerReporter(info: ReporterInfo) {
     return this.call("register_reporter", { info });
   }

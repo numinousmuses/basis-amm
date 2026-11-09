@@ -19,6 +19,7 @@
   },
   "policy": {
     "fees": {},
-    "human_readable_rules": "Max 4x, smaller when the tick-sensitivity test binds. The risk premium covers 15% of the hold-to-resolution floor value. CLOSE_ONLY in the final hour. Losing positions are liquidated at 5% maintenance + $1. Profit is never capped or force-closed."
+    "human_readable_rules": "Max 4x, smaller when the tick-sensitivity test binds. The risk premium covers 10% of the hold-to-resolution floor value. CLOSE_ONLY in the final hour. Losing positions are liquidated at 5% maintenance + $1. Profit is never capped or force-closed. Before resolution, maintenance for losing positions ramps to 50%.",
+    "maintenance_ramp_s": 36000
   }
 }

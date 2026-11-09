@@ -62,6 +62,8 @@ export interface MarketManifest {
     max_hedge_slippage_bps: number;
     min_fill_floor_pct: string;
     max_order_lifetime_s: number;
+    pre_resolution_maintenance_bps?: number;
+    maintenance_ramp_s?: number;
     governance_approval: string;
     human_readable_rules: string;
   };
@@ -156,6 +158,8 @@ export function manifestToChain(m: MarketManifest, nowMs = Date.now()): { descri
     max_hedge_slippage_bps: p.max_hedge_slippage_bps,
     min_fill_floor_ppm: decimalToFixed(p.min_fill_floor_pct, 4).toString(),
     max_order_lifetime_ns: (BigInt(p.max_order_lifetime_s) * S).toString(),
+    pre_resolution_maintenance_bps: p.pre_resolution_maintenance_bps ?? 0,
+    maintenance_ramp_ns: (BigInt(p.maintenance_ramp_s ?? 0) * S).toString(),
     governance_approval: p.governance_approval,
     human_readable_rules: p.human_readable_rules,
   };

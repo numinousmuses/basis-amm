@@ -29,6 +29,9 @@ export interface SimConfig {
   proxyMatch: number;
   maxLeverage: number;
   minAdverseTicks: number;
+  /** Pre-resolution maintenance ramp (losers only): target bps, and the share of the path it spans. */
+  rampMaintenanceBps: number;
+  rampFraction: number;
 }
 
 export const DEFAULTS: SimConfig = {
@@ -48,6 +51,8 @@ export const DEFAULTS: SimConfig = {
   proxyMatch: 0.8,
   maxLeverage: 5,
   minAdverseTicks: 10,
+  rampMaintenanceBps: 0,
+  rampFraction: 0.2,
 };
 
 export const STRATEGIES = ["POOL_ONLY", "EXACT_HEDGE", "MARGIN_ESCROW", "PROXY_HEDGE"] as const;
@@ -99,7 +104,13 @@ export function simulateTrade(path: Path, fam: Family, c: SimConfig, r: () => nu
     const bid = clamp(px(t) - half, 0, 1);
     const halted = path.halted[t];
     const equity = margin + units * (bid - entry) - fees.hold;
-    const maint = units * bid * (c.maintenanceBps / 10_000) + c.maintenanceFixed;
+    // Maintenance ramps up before resolution, but only ever for losing positions.
+    const rampStart = (n - 1) * (1 - c.rampFraction);
+    let mbps = c.maintenanceBps;
+    if (c.rampMaintenanceBps > mbps && t > rampStart && equity < margin) {
+      mbps += (c.rampMaintenanceBps - mbps) * Math.min(1, (t - rampStart) / ((n - 1) - rampStart));
+    }
+    const maint = units * bid * (mbps / 10_000) + c.maintenanceFixed;
     const keeperCanAct = !halted && (t - t0) % c.keeperEvery === 0;
     if (keeperCanAct && equity <= maint) {
       exitT = t;

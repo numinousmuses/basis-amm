@@ -15,9 +15,20 @@ export class Store {
       CREATE TABLE IF NOT EXISTS marks (id INTEGER PRIMARY KEY AUTOINCREMENT, market TEXT, ts_ms INTEGER, mids TEXT, bids TEXT, asks TEXT, report_id TEXT, source_chain TEXT);
       CREATE INDEX IF NOT EXISTS marks_market_ts ON marks(market, ts_ms);
       CREATE TABLE IF NOT EXISTS vault (ts_ms INTEGER PRIMARY KEY, nav TEXT, share_price TEXT, free TEXT, reserve TEXT, stress TEXT, insurance TEXT, supply TEXT, open_margin TEXT, fees TEXT);
-      CREATE TABLE IF NOT EXISTS exec_fills (fill_id TEXT PRIMARY KEY, order_id TEXT, market TEXT, outcome INTEGER, units TEXT, price TEXT, tx TEXT, ts_ms INTEGER);
+      CREATE TABLE IF NOT EXISTS exec_fills (fill_id TEXT PRIMARY KEY, order_id TEXT, market TEXT, outcome INTEGER, units TEXT, price TEXT, tx TEXT, ts_ms INTEGER, side TEXT DEFAULT 'buy', simulated INTEGER DEFAULT 1);
+      CREATE TABLE IF NOT EXISTS live_spend (day TEXT PRIMARY KEY, usd REAL);
       CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT);
     `);
+    this.migrate();
+  }
+  private migrate() {
+    for (const col of ["side TEXT DEFAULT 'buy'", "simulated INTEGER DEFAULT 1"]) {
+      try {
+        this.db.exec(`ALTER TABLE exec_fills ADD COLUMN ${col}`);
+      } catch {
+        /* column exists */
+      }
+    }
   }
   get(k: string): string | undefined {
     return (this.db.prepare("SELECT v FROM meta WHERE k = ?").get(k) as any)?.v;
@@ -54,8 +65,18 @@ export class Store {
   vault(sinceMs: number, limit = 1000) {
     return (this.db.prepare("SELECT * FROM vault WHERE ts_ms >= ? ORDER BY ts_ms DESC LIMIT ?").all(sinceMs, limit) as any[]).reverse();
   }
-  insertFill(f: { fill_id: string; order_id: string | null; market: string; outcome: number; units: string; price: string; tx: string }) {
-    this.db.prepare("INSERT OR IGNORE INTO exec_fills VALUES(?,?,?,?,?,?,?,?)").run(f.fill_id, f.order_id, f.market, f.outcome, f.units, f.price, f.tx, Date.now());
+  insertFill(f: { fill_id: string; order_id: string | null; market: string; outcome: number; units: string; price: string; tx: string; side?: string; simulated?: boolean }) {
+    this.db
+      .prepare("INSERT OR IGNORE INTO exec_fills(fill_id, order_id, market, outcome, units, price, tx, ts_ms, side, simulated) VALUES(?,?,?,?,?,?,?,?,?,?)")
+      .run(f.fill_id, f.order_id, f.market, f.outcome, f.units, f.price, f.tx, Date.now(), f.side ?? "buy", f.simulated === false ? 0 : 1);
+  }
+  spentToday(): number {
+    const day = new Date().toISOString().slice(0, 10);
+    return Number((this.db.prepare("SELECT usd FROM live_spend WHERE day = ?").get(day) as any)?.usd ?? 0);
+  }
+  recordSpend(usd: number) {
+    const day = new Date().toISOString().slice(0, 10);
+    this.db.prepare("INSERT INTO live_spend(day, usd) VALUES(?, ?) ON CONFLICT(day) DO UPDATE SET usd = usd + excluded.usd").run(day, usd);
   }
   fills(market?: string) {
     return (market ? this.db.prepare("SELECT * FROM exec_fills WHERE market = ?").all(market) : this.db.prepare("SELECT * FROM exec_fills").all()) as any[];

@@ -66,19 +66,19 @@ function breakeven(fam: (typeof FAMILIES)[number], seed: number): number {
   let hi = 1.5;
   for (let i = 0; i < 18; i++) {
     const mid = (lo + hi) / 2;
-    const r = runFamily(fam, { ...cfg, seed, maxLeverage: CAPS[fam.name], floorCoverage: mid, eventsPerFamily: 120 });
+    const r = runFamily(fam, { ...cfg, seed, maxLeverage: CAPS[fam.name], floorCoverage: mid, eventsPerFamily: 120, rampMaintenanceBps: 5000, rampFraction: 0.4 });
     if (r.strategies.POOL_ONLY.totalPnl >= 0) hi = mid;
     else lo = mid;
   }
   return hi;
 }
 const rec: Record<string, unknown> = {};
-let rm = "\n## Calibrated leverage cap and floor coverage\n\nBreak-even averaged over 5 seeds, +25% buffer, rounded up to 5%; then re-run on every seed.\n\n| Family | Leverage cap | Mean break-even | Worst seed | Recommended | Seeds with LP profit | Mean LP P&L | Trader EV per trade |\n|---|---|---|---|---|---|---|---|\n";
+let rm = "\n## Calibrated leverage cap and floor coverage\n\nWith the pre-resolution maintenance ramp (losers only, to 50% over the final 40% of each market). Break-even averaged over 5 seeds, +25% buffer, rounded up to 5%; then re-run on every seed.\n\n| Family | Leverage cap | Mean break-even | Worst seed | Recommended | Seeds with LP profit | Mean LP P&L | Trader EV per trade |\n|---|---|---|---|---|---|---|---|\n";
 for (const fam of FAMILIES) {
   const bs = SEEDS.map((sd) => breakeven(fam, sd));
   const mean = bs.reduce((a, b) => a + b, 0) / bs.length;
   const recBps = Math.ceil((mean * 1.25 * 100) / 5) * 5 * 100;
-  const runs = SEEDS.map((sd) => runFamily(fam, { ...cfg, seed: sd, maxLeverage: CAPS[fam.name], floorCoverage: recBps / 10_000 }));
+  const runs = SEEDS.map((sd) => runFamily(fam, { ...cfg, seed: sd, maxLeverage: CAPS[fam.name], floorCoverage: recBps / 10_000, rampMaintenanceBps: 5000, rampFraction: 0.4 }));
   const wins = runs.filter((r) => r.strategies.POOL_ONLY.totalPnl > 0).length;
   const lp = runs.reduce((a, r) => a + r.strategies.POOL_ONLY.totalPnl, 0) / runs.length;
   const tev = runs.reduce((a, r) => a + r.traderEvPerTrade, 0) / runs.length;

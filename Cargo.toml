@@ -3,6 +3,7 @@ resolver = "3"
 members = [
   "crates/basis-math",
   "crates/oracle-tee",
+  "crates/executor-tee",
   "contracts/basis-core",
   "contracts/mock-usdc",
   "contracts/mock-outlayer",

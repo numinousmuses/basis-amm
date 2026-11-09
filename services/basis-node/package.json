@@ -14,10 +14,12 @@
   "dependencies": {
     "@basis/sdk": "workspace:*",
     "@basis/stack": "workspace:*",
-    "near-api-js": "7.4.0",
-    "ws": "^8.18.0",
     "@noble/curves": "^1.9.0",
-    "@noble/hashes": "^1.8.0"
+    "@noble/hashes": "^1.8.0",
+    "@polymarket/client": "0.18.0",
+    "near-api-js": "7.4.0",
+    "viem": "^2.57.17",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

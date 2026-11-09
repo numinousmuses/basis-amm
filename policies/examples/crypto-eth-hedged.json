@@ -19,6 +19,6 @@
   "policy": {
     "strategy": "HedgeRequired",
     "hedge_budget_bps": 1500,
-    "human_readable_rules": "HEDGE_REQUIRED: no position opens until the vault's exact-share hedge fills on the venue. Partial hedges scale the position; below your minimum fill the order is refunded in full."
+    "human_readable_rules": "HEDGE_REQUIRED: no position opens until the vault's exact-share hedge fills on the venue. Partial hedges scale the position; below your minimum fill the order is refunded in full. Before resolution, maintenance for losing positions ramps to 50%."
   }
 }

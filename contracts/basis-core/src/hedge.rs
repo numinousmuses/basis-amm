@@ -82,15 +82,24 @@ impl Contract {
             require!(receipt.executed_ns.0 <= intent.deadline_ns.0, "HEDGE_REJECTED: fill after order deadline");
             slip = slip.min(intent.max_hedge_slippage_bps as u128);
             let reserved = o.reserved_terms.unwrap_or_else(|| fail("ORDER_NOT_RESERVED", ""));
-            require!(o.hedge_units.0 + receipt.units.0 <= reserved.units.0, "HEDGE_REJECTED: overfill beyond reserved size");
+            // A real FAK fill can land slightly over the reserved size (share rounding, price
+            // improvement). Up to 2% over is accepted: the order is credited only up to its reserved
+            // size and the excess is booked as plain vault inventory. More than that is rejected.
+            let room = reserved.units.0.saturating_sub(o.hedge_units.0);
+            let tolerance = reserved.units.0 / 50;
+            require!(receipt.units.0 <= room + tolerance, "HEDGE_REJECTED: overfill beyond reserved size");
             let max_px = math(basis_math::mul_div_floor(intent.max_entry_price.0, BPS + slip, BPS)).min(PRICE_SCALE - 1);
             require!(receipt.price.0 <= max_px, "HEDGE_REJECTED: price outside signed slippage");
-            o.hedge_units = U128(o.hedge_units.0 + receipt.units.0);
-            o.hedge_cost = U128(o.hedge_cost.0 + cost + receipt.fee.0);
+            let credited = receipt.units.0.min(room);
+            let credited_cost = math(basis_math::mul_div_ceil(cost + receipt.fee.0, credited, receipt.units.0));
+            o.hedge_units = U128(o.hedge_units.0 + credited);
+            o.hedge_cost = U128(o.hedge_cost.0 + credited_cost);
             o.hedge_fill_ids.push(receipt.fill_id.clone());
             o.state = OrderState::HedgedProvisional;
             self.orders.insert(oid.0, o);
-        } else {
+        } else if receipt.side_buy {
+            // Selling only ever reduces inventory (unwinds and orphans), so it is allowed on any
+            // market; new standalone exposure needs a POOL_PLUS_HEDGE policy.
             require!(p.strategy == StrategyMode::PoolPlusHedge, "HEDGE_REJECTED: standalone hedges need POOL_PLUS_HEDGE");
         }
 

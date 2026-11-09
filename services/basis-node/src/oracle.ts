@@ -5,6 +5,7 @@ import { markReport, nowNs, type Market, type SignedReport } from "@basis/sdk";
 import type { NodeContext } from "./context.js";
 import { log } from "./log.js";
 import { liveTokenIds } from "./tee.js";
+import { isLive } from "./polymarket/refs.js";
 
 export interface OracleOptions {
   /** Lean mode (testnet): sign every tick locally, push onchain only where NAV needs it. */
@@ -31,8 +32,11 @@ export class OracleWorker {
     this.lastPush.set(id, Date.now());
   }
 
-  feedFor(id: string) {
-    return this.ctx.feeds.get(id) ?? this.ctx.feed;
+  feedFor(id: string, m?: Market) {
+    const explicit = this.ctx.feeds.get(id);
+    if (explicit) return explicit;
+    if (m && this.ctx.liveFeed && isLive(m)) return this.ctx.liveFeed;
+    return this.ctx.feed;
   }
 
   /** Build and sign a fresh MARK for `market` observed now. */
@@ -44,7 +48,7 @@ export class OracleWorker {
       this.history.push({ marketId: m.descriptor.market_id, ts: BigInt(s.report.source_timestamp_ns), mids, reportId: s.report.report_id });
       return s;
     }
-    const snap = await this.feedFor(m.descriptor.market_id).snapshot(m);
+    const snap = await this.feedFor(m.descriptor.market_id, m).snapshot(m);
     const ts = nowNs();
     const r = markReport({
       marketId: m.descriptor.market_id,
