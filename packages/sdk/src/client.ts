@@ -378,6 +378,16 @@ export class BasisClient {
   registerAdapter(adapter: string) {
     return this.call("register_adapter", { adapter });
   }
+  proposeConfig(config: ProtocolConfig) {
+    return this.call("propose_config", { config });
+  }
+  applyConfig() {
+    return this.call("apply_config", {});
+  }
+  /** Ask OutLayer to run the pinned oracle WASM in `pubkey` mode and register its key as attested. */
+  requestTeeReporter(label: string, canMark: boolean, canResolve: boolean, deposit: bigint) {
+    return this.call<string>("request_tee_reporter", { label, can_mark: canMark, can_resolve: canResolve }, { deposit, gas: 300n * TGAS });
+  }
   registerReporter(info: ReporterInfo) {
     return this.call("register_reporter", { info });
   }

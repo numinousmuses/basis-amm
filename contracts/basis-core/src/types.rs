@@ -255,6 +255,25 @@ pub struct ReporterInfo {
     /// binds code to inputs/outputs, not the truth of the external source.
     pub attestation_measurement: String,
     pub active: bool,
+    /// Set only by `on_tee_reporter`: the key was returned by OutLayer for the pinned WASM hash.
+    pub tee_attested: bool,
+}
+
+/// OutLayer TEE execution settings for the oracle program (spec section 1: attested offchain WASM).
+#[near(serializers = [json, borsh])]
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TeeConfig {
+    /// `outlayer.near` / `outlayer.testnet` (or a labeled mock on sandbox).
+    pub outlayer_contract: AccountId,
+    /// Public HTTPS URL of the oracle-tee WASM.
+    pub wasm_url: String,
+    /// SHA-256 of that WASM, hex. OutLayer refuses to run a binary with a different hash.
+    pub wasm_hash: String,
+    pub build_target: String,
+    /// OutLayer secrets profile holding `PROTECTED_ORACLE_KEY` (bound to the WASM hash).
+    pub secrets_profile: String,
+    pub secrets_owner: AccountId,
+    pub max_execution_seconds: u32,
 }
 
 #[near(serializers = [json, borsh])]
@@ -487,6 +506,9 @@ pub struct ProtocolConfig {
     pub max_hedge_budget_bps: u16,
     pub blp_transferable: bool,
     pub event_log_capacity: u32,
+    /// When true, MARK reports are accepted only from TEE-attested reporters.
+    pub require_attested_marks: bool,
+    pub tee: Option<TeeConfig>,
 }
 
 #[near(serializers = [json, borsh])]

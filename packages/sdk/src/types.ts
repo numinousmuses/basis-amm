@@ -152,6 +152,16 @@ export interface ReporterInfo {
   can_resolve: boolean;
   attestation_measurement: string;
   active: boolean;
+  tee_attested: boolean;
+}
+export interface TeeConfig {
+  outlayer_contract: string;
+  wasm_url: string;
+  wasm_hash: string;
+  build_target: string;
+  secrets_profile: string;
+  secrets_owner: string;
+  max_execution_seconds: number;
 }
 export interface StoredMark {
   report: OracleReport;
@@ -295,6 +305,8 @@ export interface ProtocolConfig {
   max_hedge_budget_bps: number;
   blp_transferable: boolean;
   event_log_capacity: number;
+  require_attested_marks: boolean;
+  tee: TeeConfig | null;
 }
 export interface Roles {
   admin: string;

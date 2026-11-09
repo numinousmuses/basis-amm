@@ -22,6 +22,7 @@ pub mod hedge;
 pub mod margin;
 pub mod oracle;
 pub mod registry;
+pub mod tee;
 pub mod types;
 pub mod vault;
 pub mod views;
@@ -441,6 +442,11 @@ impl Contract {
         require!((c.max_hedge_budget_bps as u128) <= basis_math::BPS, "CONFIG: hedge budget");
         require!((c.max_fee_bps_bound as u128) <= basis_math::BPS, "CONFIG: fee bound");
         require!(c.event_log_capacity >= 16, "CONFIG: event log capacity");
+        require!(!c.require_attested_marks || c.tee.is_some(), "CONFIG: attested marks need a TEE config");
+        if let Some(t) = &c.tee {
+            require!(t.wasm_hash.len() == 64 && hex_decode(&t.wasm_hash).is_some(), "CONFIG: tee wasm hash");
+            require!(t.wasm_url.starts_with("https://"), "CONFIG: tee wasm url");
+        }
     }
 
     /// Credit collateral to `who` and attempt an immediate transfer; on failure it stays

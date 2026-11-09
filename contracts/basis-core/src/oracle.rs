@@ -11,7 +11,7 @@ use basis_math::book::Level;
 /// Allowed clock skew between a reporter's source timestamp and NEAR block time.
 pub(crate) const MAX_FUTURE_SKEW_NS: u64 = 5_000_000_000;
 
-pub(crate) fn report_digest(contract: &AccountId, r: &OracleReport) -> [u8; 32] {
+pub fn report_digest(contract: &AccountId, r: &OracleReport) -> [u8; 32] {
     let mut msg = b"BASIS_AMM_ORACLE_V1".to_vec();
     msg.extend_from_slice(contract.as_bytes());
     msg.extend(near_sdk::borsh::to_vec(r).unwrap_or_else(|_| fail("REPORT_ENCODING", "")));
@@ -38,6 +38,9 @@ pub(crate) fn best_ask(b: &OutcomeBook) -> u128 {
 impl Contract {
     pub fn register_reporter(&mut self, info: ReporterInfo) {
         self.assert_admin();
+        let mut info = info;
+        // Attestation can only be granted by the OutLayer callback, never asserted by an admin.
+        info.tee_attested = false;
         let pk = hex_decode(&info.public_key).unwrap_or_else(|| fail("REPORTER_KEY", "hex"));
         require!(pk.len() == 32, "REPORTER_KEY: 32 bytes");
         self.emit("reporter_registered", json!({"public_key": info.public_key, "label": info.label}));
@@ -173,6 +176,7 @@ impl Contract {
     pub(crate) fn verify_mark(&mut self, s: &SignedReport, p: &MarketPolicy, not_before_ns: u64) -> OracleReport {
         let info = self.verify_signature(s);
         require!(info.can_mark, "UNAUTHORIZED: reporter cannot mark");
+        require!(!self.config.require_attested_marks || info.tee_attested, "ORACLE_UNATTESTED: marks must come from a TEE-attested reporter");
         let r = &s.report;
         require!(r.kind == ReportKind::Mark, "ORACLE_KIND: expected MARK");
         let t = now();

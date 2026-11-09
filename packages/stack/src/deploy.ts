@@ -51,6 +51,8 @@ export function sandboxConfig(over: Partial<ProtocolConfig> = {}): ProtocolConfi
     max_hedge_budget_bps: 2000,
     blp_transferable: true,
     event_log_capacity: 4000,
+    require_attested_marks: false,
+    tee: null,
     ...over,
   };
 }
@@ -174,9 +176,9 @@ export async function deployStack(o: DeployOptions): Promise<DeployedStack> {
     resolveB: Buffer.from(ReporterKey.random().secret).toString("hex"),
   };
   const markKey = ReporterKey.fromHex(secrets.mark);
-  await admin.registerReporter({ public_key: markKey.publicKeyHex, label: "mark-worker-1", can_mark: true, can_resolve: false, attestation_measurement: "dev:unattested", active: true });
-  await admin.registerReporter({ public_key: ReporterKey.fromHex(secrets.resolveA).publicKeyHex, label: "resolution-reporter-A", can_mark: false, can_resolve: true, attestation_measurement: "dev:unattested", active: true });
-  await admin.registerReporter({ public_key: ReporterKey.fromHex(secrets.resolveB).publicKeyHex, label: "resolution-reporter-B", can_mark: false, can_resolve: true, attestation_measurement: "dev:unattested", active: true });
+  await admin.registerReporter({ public_key: markKey.publicKeyHex, label: "mark-worker-1", can_mark: true, can_resolve: false, attestation_measurement: "dev:unattested", active: true, tee_attested: false });
+  await admin.registerReporter({ public_key: ReporterKey.fromHex(secrets.resolveA).publicKeyHex, label: "resolution-reporter-A", can_mark: false, can_resolve: true, attestation_measurement: "dev:unattested", active: true, tee_attested: false });
+  await admin.registerReporter({ public_key: ReporterKey.fromHex(secrets.resolveB).publicKeyHex, label: "resolution-reporter-B", can_mark: false, can_resolve: true, attestation_measurement: "dev:unattested", active: true, tee_attested: false });
   log("adapters and reporters registered");
 
   // Markets: propose, wait for the timelock, approve.
