@@ -44,7 +44,7 @@ export async function startNode(stack: DeployedStack, o: NodeOptions = {}) {
     loop("marks", iv.marks, async () => indexer.tickMarks(), err("indexer")),
     loop("vault", iv.vault, () => indexer.tickVault(), err("indexer")),
   ];
-  const server = startApi({ ctx, store, indexer, keeper, executor, reconciler, quotes, devControls: o.devControls ?? false, exposeDevKeys: o.exposeDevKeys ?? false, startedAt: Date.now() }, o.port ?? 8787);
+  const server = startApi({ ctx, store, indexer, keeper, executor, reconciler, quotes, devControls: o.devControls ?? false, exposeDevKeys: o.exposeDevKeys ?? false, startedAt: Date.now() }, o.port ?? 8797);
   return {
     ctx,
     store,

@@ -4,7 +4,7 @@
  *   basis-node --sandbox            start (or resume) a local sandbox, deploy the stack once, run
  *   basis-node --stack <file.json>  run against an existing deployment (e.g. testnet)
  *
- * Flags: --port 8787  --db <path>  --dev-controls  --volatility 0.004 */
+ * Flags: --port 8797  --rpc-port 3030  --data <dir>  --db <path>  --dev-controls  --volatility 0.004 */
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { REPO_ROOT, deployStack, loadExampleManifests, startSandbox, type DeployedStack } from "@basis/stack";
@@ -20,7 +20,7 @@ const opt = (n: string, d?: string) => {
 };
 
 async function main() {
-  const dataDir = join(REPO_ROOT, "infra/local-dev/data");
+  const dataDir = opt("data", join(REPO_ROOT, "infra/local-dev/data"))!;
   let stack: DeployedStack;
   let stopSandbox: (() => Promise<void>) | undefined;
   if (flag("sandbox")) {
@@ -50,7 +50,7 @@ async function main() {
     stack = JSON.parse(readFileSync(f, "utf8"));
   }
   const node = await startNode(stack, {
-    port: Number(opt("port", "8787")),
+    port: Number(opt("port", "8797")),
     dbPath: opt("db", join(dataDir, `${stack.network}.sqlite`)),
     feed: new MockFeed(Number(opt("seed", "42")), Number(opt("volatility", "0.004"))),
     devControls: flag("dev-controls") || flag("sandbox"),
