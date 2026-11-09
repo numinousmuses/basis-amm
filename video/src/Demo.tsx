@@ -92,23 +92,23 @@ const Payoff: React.FC = () => (
   </AbsoluteFill>
 );
 
-export const SHOTS: Array<{ file: string; title: string; body: string; focus?: [number, number] }> = [
-  { file: "01-markets.png", title: "Every admitted market", body: "Crypto, sports, elections, macro, commodities. Categories are labels in a manifest, never code.", focus: [0.5, 0.45] },
-  { file: "04-trade-composer.png", title: "Executable prices", body: "Depth from a signed oracle mark. Fills walk the book for the real size.", focus: [0.4, 0.4] },
-  { file: "05-composer-payout-and-warnings.png", title: "The contract's own numbers", body: "Max loss $100. Profit $500. Payout $600. Fees and the fair-value premium up front.", focus: [0.85, 0.35] },
-  { file: "06-confirm-with-market-rules.png", title: "Rules before you sign", body: "Policy version and hash, windows, leverage cap, maintenance, resolution source.", focus: [0.5, 0.5] },
-  { file: "08-order-executed-position-open.png", title: "Commit, then execute", body: "A keeper fills the order with a mark observed after your commit. No last look.", focus: [0.6, 0.45] },
-  { file: "12-plus-100-percent-still-open.png", title: "+100% and still open", body: "No forced take-profit. Equity keeps its full upside until you close.", focus: [0.5, 0.45] },
-  { file: "13-vault.png", title: "The counterparty vault", body: "bLP share price, NAV, free versus reserved liquidity, insurance, withdrawal queue.", focus: [0.5, 0.4] },
-  { file: "15-risk-monitor.png", title: "Scenario risk, per event", body: "Trader P&L in every outcome, hedge P&L, payout reserve, stress loss against the cap.", focus: [0.5, 0.45] },
-  { file: "17-trade-close-only.png", title: "Policy changes without redeploys", body: "A guardian can only restrict: close-only, pause. Open positions keep their terms.", focus: [0.75, 0.35] },
-  { file: "19-settlement-payout.png", title: "Settled on the exact outcome", body: "Quorum, dispute window, then payout from the resolved payout vector.", focus: [0.5, 0.5] },
-  { file: "20-activity-audit-log.png", title: "Everything is on the audit log", body: "Sequenced contract events. Simulated venue fills are labeled as simulated.", focus: [0.5, 0.4] },
+export const SHOTS: Array<{ file: string; title: string; body: string; focus?: [number, number]; zoom?: number }> = [
+  { file: "01-markets.png", title: "Every admitted market", body: "Crypto, sports, elections, macro, commodities. Categories are labels in a manifest, never code.", focus: [0.6, 0.55], zoom: 1.1 },
+  { file: "04-trade-composer.png", title: "Executable prices", body: "Depth from a signed oracle mark. Fills walk the book for the real size.", focus: [0.45, 0.45], zoom: 1.3 },
+  { file: "05-composer-payout-and-warnings.png", title: "The contract's own numbers", body: "Max loss $100. Profit $500. Payout $600. Fees and the fair-value premium up front.", focus: [0.97, 0.1], zoom: 2.0 },
+  { file: "06-confirm-with-market-rules.png", title: "Rules before you sign", body: "Policy version and hash, windows, leverage cap, maintenance, resolution source.", focus: [0.5, 0.5], zoom: 1.3 },
+  { file: "08-order-executed-position-open.png", title: "Commit, then execute", body: "A keeper fills the order with a mark observed after your commit. No last look.", focus: [0.97, 0.97], zoom: 1.9 },
+  { file: "12-plus-100-percent-still-open.png", title: "+100% and still open", body: "No forced take-profit. Equity keeps its full upside until you close.", focus: [0.62, 0.45], zoom: 1.7 },
+  { file: "13-vault.png", title: "The counterparty vault", body: "bLP share price, NAV, free versus reserved liquidity, insurance, withdrawal queue.", focus: [0.55, 0.45], zoom: 1.2 },
+  { file: "15-risk-monitor.png", title: "Scenario risk, per event", body: "Trader P&L in every outcome, hedge P&L, payout reserve, stress loss against the cap.", focus: [0.6, 0.5], zoom: 1.3 },
+  { file: "17-trade-close-only.png", title: "Policy changes without redeploys", body: "A guardian can only restrict: close-only, pause. Open positions keep their terms.", focus: [0.6, 0.35], zoom: 1.3 },
+  { file: "19-settlement-payout.png", title: "Settled on the exact outcome", body: "Quorum, dispute window, then payout from the resolved payout vector.", focus: [0.62, 0.5], zoom: 1.7 },
+  { file: "20-activity-audit-log.png", title: "Everything is on the audit log", body: "Sequenced contract events. Simulated venue fills are labeled as simulated.", focus: [0.55, 0.4], zoom: 1.3 },
 ];
 
 export const SHOT_FRAMES = 130;
 
-const Shot: React.FC<{ file: string; title: string; body: string; focus?: [number, number] }> = ({ file, title, body, focus = [0.5, 0.5] }) => {
+const Shot: React.FC<{ file: string; title: string; body: string; focus?: [number, number]; zoom?: number }> = ({ file, title, body, focus = [0.5, 0.5], zoom = 1 }) => {
   const f = useCurrentFrame();
   return (
     <AbsoluteFill style={{ background: C.bg, fontFamily: FONT, color: C.fg }}>
@@ -120,7 +120,7 @@ const Shot: React.FC<{ file: string; title: string; body: string; focus?: [numbe
             height: "100%",
             objectFit: "cover",
             transformOrigin: `${focus[0] * 100}% ${focus[1] * 100}%`,
-            scale: interpolate(f, [0, SHOT_FRAMES], [1.0, 1.1], clamp),
+            scale: interpolate(f, [0, SHOT_FRAMES], [zoom, zoom * 1.08], clamp),
             opacity: interpolate(f, [0, 12], [0, 1], clamp),
           }}
         />
