@@ -76,3 +76,21 @@ Deployment transactions:
 | approve:7 | [4C85dxVAkr5F...](https://testnet.nearblocks.io/txns/4C85dxVAkr5FGfuemwxeVesjgHZAD5oQfXkWsqCN7Zbx) |
 | insurance_seed | [9KdesVs195qo...](https://testnet.nearblocks.io/txns/9KdesVs195qouhLyJrDgcV23VLKSwJRUPMUwsZqsXKuG) |
 | lp_deposit | [CfVNCTaqD1Sc...](https://testnet.nearblocks.io/txns/CfVNCTaqD1ScHax9D7rj5PF5L9Af5FGSwHUPRCmjgbrQ) |
+
+## Live Polymarket on testnet (contract v3)
+
+Contract [`core.basisv349012.testnet`](https://testnet.nearblocks.io/address/core.basisv349012.testnet). Live market: Polymarket `us-announces-end-of-iranian-blockade-by-november-30-2026`; resolved market: `will-joe-biden-get-coronavirus-before-the-election`. Hedge fills are PAPER fills computed against the live Polymarket order book; no Polymarket order was placed. NEAR transactions are real testnet transactions.
+
+| Step | Transaction | Detail |
+|---|---|---|
+| admit live market us-announces-end-of-iranian-blockade-by-november-30-2026 (propose) | [85ZwRtQJqavr...](https://testnet.nearblocks.io/txns/85ZwRtQJqavr3cyN9jsKTGSit6U1qw2qdsq8dsxdNNdr) |  |
+| admit live market us-announces-end-of-iranian-blockade-by-november-30-2026 (approve after timelock) | [2a4VKD1NosjY...](https://testnet.nearblocks.io/txns/2a4VKD1NosjYm5mMWRuCzq7tofWqJFtVspThCjwDMGwW) |  |
+| admit resolved market will-joe-biden-get-coronavirus-before-the-election (approve) | [AWmU8Zfd3FcK...](https://testnet.nearblocks.io/txns/AWmU8Zfd3FcKE1bQr9bmNCvD2mWniLgLVYYQEW5gL3vr) |  |
+| alice signs a 2x $25 YES order (ft_transfer_call) | [2LQ7zag9hM5K...](https://testnet.nearblocks.io/txns/2LQ7zag9hM5K3mq6RTQcZ7e2NUusUwcifjMRZpw92fWU) |  |
+| vault hedged at the live Polymarket ask (paper fill) | `paper:0x6dc7975871f62a...` | 217.391304 shares @ 0.23 |
+| position OPEN at the contract's entry price |  | entry 0.230002, units 217.390359 |
+| alice requests close | [FKTqo7SDpV3A...](https://testnet.nearblocks.io/txns/FKTqo7SDpV3AzHUTdowqWm8Ssa4ezW3ChAL2QWkeWBau) |  |
+| position CLOSED at the live bid |  | paid out $22.778051 |
+| executor unwound the hedge at the live bid (paper fill) | `paper:0x76f16f4f80db18...` | 217.391304 shares @ 0.219999 |
+| resolution votes from Polymarket API and CTF contract agree |  | scenario 1 (final-pm-live-resolved-demo-1794249558583000000, final-pm-live-resolved-demo-1794249560977000000) |
+| resolved market finalized and Settled |  | resolved_scenario 1 |

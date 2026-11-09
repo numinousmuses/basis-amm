@@ -1,0 +1,67 @@
+{
+  "network": "testnet",
+  "contract": "core.basisv349012.testnet",
+  "live_market": {
+    "id": "pm-live-4906128",
+    "polymarket_slug": "us-announces-end-of-iranian-blockade-by-november-30-2026"
+  },
+  "resolved_market": {
+    "id": "pm-live-resolved-demo",
+    "polymarket_slug": "will-joe-biden-get-coronavirus-before-the-election"
+  },
+  "steps": [
+    {
+      "step": "admit live market us-announces-end-of-iranian-blockade-by-november-30-2026 (propose)",
+      "tx": "85ZwRtQJqavr3cyN9jsKTGSit6U1qw2qdsq8dsxdNNdr",
+      "url": "https://testnet.nearblocks.io/txns/85ZwRtQJqavr3cyN9jsKTGSit6U1qw2qdsq8dsxdNNdr"
+    },
+    {
+      "step": "admit live market us-announces-end-of-iranian-blockade-by-november-30-2026 (approve after timelock)",
+      "tx": "2a4VKD1NosjYm5mMWRuCzq7tofWqJFtVspThCjwDMGwW",
+      "url": "https://testnet.nearblocks.io/txns/2a4VKD1NosjYm5mMWRuCzq7tofWqJFtVspThCjwDMGwW"
+    },
+    {
+      "step": "admit resolved market will-joe-biden-get-coronavirus-before-the-election (approve)",
+      "tx": "AWmU8Zfd3FcKE1bQr9bmNCvD2mWniLgLVYYQEW5gL3vr",
+      "url": "https://testnet.nearblocks.io/txns/AWmU8Zfd3FcKE1bQr9bmNCvD2mWniLgLVYYQEW5gL3vr"
+    },
+    {
+      "step": "alice signs a 2x $25 YES order (ft_transfer_call)",
+      "tx": "2LQ7zag9hM5K3mq6RTQcZ7e2NUusUwcifjMRZpw92fWU",
+      "url": "https://testnet.nearblocks.io/txns/2LQ7zag9hM5K3mq6RTQcZ7e2NUusUwcifjMRZpw92fWU"
+    },
+    {
+      "step": "vault hedged at the live Polymarket ask (paper fill)",
+      "tx": "paper:0x6dc7975871f62ade5d0ea5cb1f3833a70b8d75cd",
+      "note": "217.391304 shares @ 0.23"
+    },
+    {
+      "step": "position OPEN at the contract's entry price",
+      "note": "entry 0.230002, units 217.390359"
+    },
+    {
+      "step": "alice requests close",
+      "tx": "FKTqo7SDpV3AzHUTdowqWm8Ssa4ezW3ChAL2QWkeWBau",
+      "url": "https://testnet.nearblocks.io/txns/FKTqo7SDpV3AzHUTdowqWm8Ssa4ezW3ChAL2QWkeWBau"
+    },
+    {
+      "step": "position CLOSED at the live bid",
+      "note": "paid out $22.778051"
+    },
+    {
+      "step": "executor unwound the hedge at the live bid (paper fill)",
+      "tx": "paper:0x76f16f4f80db18d6ba4421a43ee85c9604a06401",
+      "note": "217.391304 shares @ 0.219999"
+    },
+    {
+      "step": "resolution votes from Polymarket API and CTF contract agree",
+      "note": "scenario 1 (final-pm-live-resolved-demo-1794249558583000000, final-pm-live-resolved-demo-1794249560977000000)"
+    },
+    {
+      "step": "resolved market finalized and Settled",
+      "note": "resolved_scenario 1"
+    }
+  ],
+  "ran_at": "2026-11-09T18:39:53.501Z",
+  "note": "Hedge fills are PAPER fills computed against the live Polymarket order book; no Polymarket order was placed. NEAR transactions are real testnet transactions."
+}
