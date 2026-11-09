@@ -12,3 +12,5 @@ dist/
 /infra/local-dev/data/
 /test-results/
 /playwright-report/
+*.secret.json
+research/out/

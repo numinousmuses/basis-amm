@@ -20,7 +20,21 @@ import {
   type HedgeFillReceipt,
   type OutcomeBook,
 } from "@basis/sdk";
-import { POLICY_DIR, deployStack, loadExampleManifests, loadManifest, startSandbox, type Sandbox } from "@basis/stack";
+import { writeFileSync, mkdirSync } from "node:fs";
+import {
+  EXPLORER_TX,
+  POLICY_DIR,
+  REPO_ROOT,
+  TESTNET_BUDGET,
+  TESTNET_RPC,
+  deployStack,
+  loadExampleManifests,
+  loadLegacyCredential,
+  loadManifest,
+  startSandbox,
+  testnetConfig,
+  type Sandbox,
+} from "@basis/stack";
 import { Ctx, D, LEV, P, expectFailure, sleep } from "../src/ctx.js";
 
 const BTC = "pm-btc-above-100k-daily";
@@ -40,17 +54,37 @@ const book = (id: number, bid: number, ask: number, units = 100_000, levels = 5)
 });
 const yesBook = (bid: number, ask: number): OutcomeBook[] => [book(0, bid, ask), book(1, Math.round((1 - ask) * 100) / 100, Math.round((1 - bid) * 100) / 100)];
 
-let sb: Sandbox;
+let sb: Sandbox | undefined;
 let x: Ctx;
+// BASIS_TARGET=testnet BASIS_TESTNET_MASTER=<account>.testnet runs the same suite on NEAR testnet.
+const TARGET = process.env.BASIS_TARGET ?? "sandbox";
 
 beforeAll(async () => {
-  sb = await startSandbox();
-  const stack = await deployStack({
-    network: "sandbox",
-    rpcUrl: sb.rpcUrl,
-    master: { accountId: sb.rootAccountId, secretKey: sb.rootSecretKey },
-    manifests: Object.values(loadExampleManifests()),
-  });
+  let stack;
+  if (TARGET === "testnet") {
+    const master = loadLegacyCredential(process.env.BASIS_TESTNET_MASTER!);
+    stack = await deployStack({
+      network: "testnet",
+      rpcUrl: TESTNET_RPC,
+      master,
+      manifests: Object.values(loadExampleManifests()),
+      config: testnetConfig(),
+      nearPerAccount: TESTNET_BUDGET,
+      userUsd: 20_000n,
+      faucetLimitUsd: 100_000n,
+      log: (m) => console.log(m),
+    });
+    mkdirSync(join(REPO_ROOT, "infra/testnet"), { recursive: true });
+    writeFileSync(join(REPO_ROOT, "infra/testnet/acceptance-stack.secret.json"), JSON.stringify(stack, null, 2));
+  } else {
+    sb = await startSandbox();
+    stack = await deployStack({
+      network: "sandbox",
+      rpcUrl: sb.rpcUrl,
+      master: { accountId: sb.rootAccountId, secretKey: sb.rootSecretKey },
+      manifests: Object.values(loadExampleManifests()),
+    });
+  }
   x = new Ctx(stack);
   // Mock venue books (all labeled mock-venue). Entry asks at exactly $0.50 where the spec uses p0=$0.50.
   x.venue.set(BTC, { mids: [], books: yesBook(0.49, 0.5) });
@@ -67,6 +101,19 @@ afterAll(async () => {
   if (x) {
     console.log("\nACCEPTANCE TX LOG");
     for (const l of x.log) console.log(`${l.step.padEnd(58)} ${l.tx} ${l.note ?? ""}`);
+    if (TARGET === "testnet") {
+      const pub = {
+        network: "testnet",
+        contract: x.stack.contractId,
+        token: x.stack.tokenId,
+        accounts: Object.fromEntries(Object.entries(x.stack.accounts).map(([k, v]) => [k, v.accountId])),
+        deploy_txs: Object.fromEntries(Object.entries(x.stack.txs).map(([k, h]) => [k, EXPLORER_TX(h)])),
+        steps: x.log.map((l) => ({ step: l.step, tx: l.tx, url: EXPLORER_TX(l.tx), note: l.note })),
+        ran_at: new Date().toISOString(),
+      };
+      mkdirSync(join(REPO_ROOT, "docs/integration-proofs"), { recursive: true });
+      writeFileSync(join(REPO_ROOT, "docs/integration-proofs/testnet-acceptance.json"), JSON.stringify(pub, null, 2) + "\n");
+    }
   }
   await sb?.stop();
 });

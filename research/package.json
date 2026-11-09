@@ -1,0 +1,13 @@
+{
+  "name": "@basis/research",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "sim": "tsx src/run.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": { "@basis/sdk": "workspace:*" },
+  "devDependencies": { "@types/node": "^22.10.0", "tsx": "^4.19.0", "typescript": "^5.7.0", "vitest": "^3.0.0" }
+}
