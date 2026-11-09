@@ -46,11 +46,11 @@ labeled deterministic mock executor (spec section 11 "hackathon minimum").
 - [x] M1 basis-math crate + property tests + test vectors (37 tests; TS parity via crates/basis-math/vectors)
 - [x] M2 basis-core contract (registry, vault/bLP NEP-141, margin, oracle, hedge, insurance, views) + mock-usdc; builds via scripts/build-contracts.sh -> out/*.wasm
 - [x] M3 sandbox acceptance suite tests/e2e/test/acceptance.test.ts: 16/16 pass (spec 11 items 1-12 + adversarial), ~10 min
-- [~] M4 services/basis-node built (oracle, keeper, mock executor, reconciler, SQLite indexer, quote, REST/WS on :8797, Polymarket read-only discovery). TODO: in-process integration test services/basis-node/test
-- [~] M5+M6 apps/web + Playwright + footage capture DELEGATED to a background subagent (started 2026-11-09 00:20 ET). It commits only apps/web, video/footage, pnpm-lock.yaml. Do not touch apps/web while it runs; use explicit git add paths (never git add -A) until it reports.
+- [x] M4 services/basis-node (oracle, keeper, mock executor, reconciler, SQLite indexer, quote, REST/WS :8797, Polymarket read-only, lean testnet mode); 7/7 integration tests
+- [x] M5+M6 apps/web done by subagent: 10 pages, 25 vitest + 7 Playwright pass (agent-reported; re-verify before publish), footage in video/footage
 - [ ] M6 Playwright e2e against local sandbox stack
 - [ ] M7 NEAR testnet deployment + scripted acceptance demo with tx hashes recorded
-- [ ] M8 docs (threat-model, risk-policy, deployment, integration-proofs, deviations, decisions)
+- [x] M8 docs written (architecture, threat-model, risk-policy, api, deployment, deviations, decisions); integration-proofs pending testnet
 - [ ] M9 publish public GitHub repo numinousmuses/basis-amm + CI
 - [ ] M10 Remotion demo video rendered from real app footage
 
@@ -64,3 +64,11 @@ labeled deterministic mock executor (spec section 11 "hackathon minimum").
   Fair-value gate: policy floor_coverage_bps (5% provisional) of hold-to-resolution floor EV; $0.80 item 11 runs on pm-gold-above-3000 with zero-spread book so EV is exactly $80.
 - 2026-11-09 00:20 ET: dev stack running: `cd services/basis-node && npx tsx src/main.ts --sandbox` (sandbox :3030, API :8797; port 8787 is taken by another local app).
   State in infra/local-dev/data (stack.json has dev keys). Orphan near-sandbox processes must be killed by PID after stopping the node.
+- 2026-11-09 04:00 ET: testnet. Faucet gives 10 NEAR/account and rate-limits (429) per IP.
+  First testnet attempt (basisamm202099) failed: signers need ~0.31 NEAR free for 300 Tgas prepaid; keys of those
+  accounts were lost (fixed: deployStack checkpointPath). Acceptance on testnet running with master basisacc211086.testnet
+  (log /tmp/acc-testnet.log; secret stack -> infra/testnet/acceptance-stack.secret.json; proofs -> docs/integration-proofs/testnet-acceptance.json).
+  Live demo master basislive211107.testnet has ~22.8 NEAR, needs ~27: reclaim spare NEAR from acceptance role accounts after the run,
+  then `npx tsx scripts/deploy-testnet.ts basislive211107.testnet live` and run basis-node --stack infra/testnet/live-stack.secret.json.
+  Remotion video: video/src/Demo.tsx (1920x1080, 2570 frames). Render: cd video && npx remotion render BasisDemo out/basis-amm-demo.mp4 --props='{"repoUrl":"https://github.com/numinousmuses/basis-amm","testnetContract":"...","testnetSteps":N}'
+  Research finding: 5% floor coverage loses LP money in all families; breakeven 10-40% (docs/decisions.md).

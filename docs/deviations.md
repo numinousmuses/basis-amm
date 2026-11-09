@@ -63,8 +63,11 @@ it, with the reason. Nothing here weakens a loss-cap, reserve or nonrecourse inv
 
 14. **Event log is a bounded ring buffer onchain** (`event_log_capacity`, 4,000 on sandbox, 300 on
     testnet to limit staked storage). Every event is also emitted as an NEP-297 log.
-15. **No upgrade entry point.** Contracts deploy without `upgrade`; a new version is a new
-    deployment. Section 14.16 is open.
+15. **No upgrade entry point, but testnet deploys keep a full-access key.** Contracts deploy
+    without an `upgrade` method; a new version is a new deployment. The testnet deployer still
+    holds the full-access key of the contract account, which can redeploy code. A production
+    deployment must delete that key (a locked contract) or hand it to a timelocked multisig.
+    Section 14.16 is open.
 16. **bLP storage.** LPs are auto-registered on bLP by the contract on first deposit, bounded by
     `min_lp_deposit`. Force-unregister is disabled so bLP can never be burned outside the ledger.
 17. **Historical backtest is synthetic.** `research/` simulates the three strategies on generated
