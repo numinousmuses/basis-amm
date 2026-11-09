@@ -30,6 +30,9 @@ depend on hedge proceeds because the payout reserve gives hedges no credit.
 |---|---|---|
 | Forged or tampered mark | ed25519 over a domain-separated digest of the Borsh report | acceptance 9 |
 | Mark key used outside the TEE | key derived from a TEE-generated PROTECTED secret bound to the WASM hash; only attested keys accepted when required; admin cannot self-declare attestation | tee.test.ts |
+| Hedge executor key abuse | key lives in executor-tee (TEE, PROTECTED secret); signs only ClobAuth and bounded Orders on allowlisted exchanges; Session Key cannot withdraw; per-order and daily caps in basis-node | executor-tee tests, live suite |
+| Venue settlement lies | real receipts carry settlement tx hash and block; reconciler double-checks inventory; Polygon inclusion is still not proven onchain | docs/hedging.md |
+| Wrong resolution | API and Conditional Tokens contract read independently, signed by different reporters; mismatch disputes | live suite, testnet demo |
 | Single-source price manipulation | TEE program cross-checks CLOB book mid against Gamma prices before signing | oracle-tee tests |
 | Stale mark / replay of an older mark | policy staleness, `valid_until`, monotonic source time | acceptance 9, 10 |
 | Last look (mark chosen after seeing the order) | execution needs a mark observed after the commit; execution is keeper-only | acceptance 9, adversarial |

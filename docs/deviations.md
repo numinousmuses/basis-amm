@@ -53,11 +53,12 @@ it, with the reason. Nothing here weakens a loss-cap, reserve or nonrecourse inv
 11. **Execution is keeper-only.** `execute_open` / `execute_close` are restricted to keeper or
     executor accounts so a user cannot pick the most favorable of several valid marks. Liquidation
     is permissionless.
-12. **Hedge venue is a deterministic mock.** No Polygon transaction is ever signed. Receipts carry
-    `simulated: true` and `tx_hash` values prefixed `sim:`. The Polymarket adapter in
-    `services/basis-node/src/feeds.ts` reads live public order books and Gamma market metadata
-    read-only (discovery and shadow marks) and never trades. A validated Polygon execution and
-    receipt path remains a separate milestone before public production, as section 11 says.
+12. **Real Polymarket execution is built but has not traded.** `services/basis-node/src/polymarket/`
+    places real FAK orders through the official SDK, settles them on Polygon and records the real
+    settlement hash (`docs/hedging.md`). It only runs with `--polymarket live` and
+    `BASIS_POLYMARKET_LIVE=1`, a funded deposit wallet and spend caps. Every automated test and the
+    testnet demo use the paper venue (live books, no orders, receipts `simulated: true`) or the
+    mock venue for fixtures. Polygon pUSD and NEAR collateral are bridged by an operator, not code.
 13. **Executor receipts are trusted operator assertions.** The contract validates market, token,
     chain, price against the fresh mark plus signed slippage, timing against the order commit and
     deadline, overfill and custody budget. It cannot verify Polygon inclusion; that would need a
@@ -78,3 +79,7 @@ it, with the reason. Nothing here weakens a loss-cap, reserve or nonrecourse inv
     paths with jumps and can replay real Polymarket price history fetched read-only. It does not
     have full historical order-book depth, which section 11 asks for before setting production
     caps.
+18. **Pre-resolution maintenance ramp blocks new opens.** Once a market's ramp starts, new
+    positions are refused (`PRE_RESOLUTION_RAMP`): a fresh position is underwater by the spread
+    and the ramp would liquidate it at once. Existing losing positions face the rising maintenance;
+    winners never do.

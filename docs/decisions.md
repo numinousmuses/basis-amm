@@ -15,27 +15,31 @@ contract prices it as the hold-to-resolution trader EV, which at a fair entry is
 Liquidation and early exits mean the vault only bears part of that, and the 5% coverage I shipped
 first was far too little: LPs lost money in every simulated family.
 
-The cost scales with `(L-1)` and with how many positions survive to resolution. I tried caps of
-2x, 3x and 4x per family in the simulator (`research/`, 5 seeds x 6,000 trades each). Lower
-leverage cuts the dollar cost but liquidations get rarer, so a larger share of the floor value
-survives to resolution; the premium as a fraction of margin barely moves below 3x. So the fix is a
-leverage cap per family plus a premium calibrated to it:
+The cost scales with `(L-1)` and with how many positions survive to resolution. Two levers cut
+it without ever force-closing a winner:
 
-| Family | Leverage cap | Break-even coverage (mean of 5 seeds) | Shipped coverage | Seeds where LPs profit | Trader edge per trade |
-|---|---|---|---|---|---|
-| Crypto (BTC, SOL, ETH), commodities | 4x | 11.6% | 15% | 4 of 5 | -$2 |
-| Elections | 4x | 25.0% | 35% | 5 of 5 | -$6 |
-| Sports in-play | 3x | 41.4% | 55% | 5 of 5 | -$4 |
-| Macro catalysts (Fed) | 3x | 41.0% | 55% | 4 of 5 | -$7 |
+1. **Leverage caps per family.** I tried 2x, 3x and 4x. Below 3x the premium as a share of margin
+   barely moves (fewer liquidations mean more positions reach the jump).
+2. **A pre-resolution maintenance ramp for losing positions.** Maintenance rises from 5% to 50%
+   over the final stretch of each market (10 h for daily crypto, 2 days for weekly, 7 days for
+   elections, Fed and monthly commodities, 1.5 h for sports). Only positions below their margin
+   are affected, so losers are liquidated at the book before the resolution jump instead of
+   through it. New opens stop when the ramp starts.
 
-Shipped coverage is the mean break-even plus 25%, rounded up to 5%. What a trader pays at entry,
-for $100 of margin at $0.50: crypto 4x about $22, election 4x about $52, sports or Fed 3x about
-$55. Sports and macro markets are expensive because one catalyst decides them; the honest options
-are to price that or not list leverage on them, and pricing it is the better product. At $0.80 the
-same positions cost 40% as much, since the floor is worth `(1-p0)`.
+With both, the simulator (`research/`, 5 seeds x 6,000 trades per family) gives:
 
-Two more guards apply to every market: a CLOSE_ONLY window for the final hour before expected
-resolution (no new exposure into the jump), and the tick-sensitivity ceiling `p0/(k*tick)`.
+| Family | Leverage cap | Break-even coverage, no ramp | With ramp | Shipped coverage | Seeds where LPs profit | Trader edge per trade |
+|---|---|---|---|---|---|---|
+| Crypto, commodities | 4x | 11.6% | 6.7% | 10% | 4 of 5 | -$3 |
+| Elections | 4x | 25.0% | 19.0% | 25% | 4 of 5 | -$4 |
+| Sports in-play | 3x | 41.4% | 37.7% | 50% | 5 of 5 | -$3 |
+| Macro catalysts (Fed) | 3x | 41.0% | 8.9% | 15% | 4 of 5 | -$2 |
+
+Shipped coverage is the mean break-even with the ramp plus 25%, rounded up to 5%. What a trader
+pays at entry for $100 of margin at $0.50: crypto 4x $15, election 4x $37.50, sports 3x $50,
+Fed 3x $15. Sports stays expensive because a single score can decide the event long before the
+ramp; the honest choices are to price that or not offer leverage on in-play sports. A final-hour
+CLOSE_ONLY window and the tick-sensitivity ceiling `p0/(k*tick)` still apply.
 
 The simulator uses synthetic paths. Before real funds these numbers must be recalibrated on real
 order-book history (spec section 11).
@@ -50,8 +54,8 @@ order-book history (spec section 11).
 | 4 | LP token | One `bLP`, non-transferable until an external risk audit (`blp_transferable: false`); deposits and withdrawals still work | `ProtocolConfig.blp_transferable` |
 | 5 | Insurance | Seed 5% of target vault size; 20% of every fee; no opens while insurance is below $1,000 (testnet) | `min_insurance_for_opens`, `insurance_share_bps` |
 | 6 | Exposure caps | 2% of NAV per event, 10% globally, hedge inventory 10-15% of NAV per hedged market, max $10,000 margin per position | policy and config |
-| 7 | Fees | Open 0.10%, close 0.10%, holding 10% APR on `(L-1)M` (15% for long-dated elections), keeper reward 5% of positive residual capped at $5, risk premium per the table above, split 70% LP / 20% insurance / 10% treasury. No keeper subsidy from insurance | `MarketPolicy.fees` |
-| 8 | Custody/execution | Testnet: controlled executor account with a labeled mock venue. Production: OutLayer TEE executor with a bounded, PROTECTED signer, same design as the oracle (`docs/tee-oracle.md`) | `Roles.executors` |
+| 7 | Fees | Open 0.10%, close 0.10%, holding 10% APR on `(L-1)M` (15% for long-dated elections), keeper reward 5% of positive residual capped at $5, risk premium per the table above (with the maintenance ramp), split 70% LP / 20% insurance / 10% treasury. No keeper subsidy from insurance | `MarketPolicy.fees`, `pre_resolution_maintenance_bps`, `maintenance_ramp_ns` |
+| 8 | Custody/execution | Executor signs through `executor-tee` (OutLayer TDX, PROTECTED key) as a CLOB-scoped Polymarket Session Key on a vault-controlled Deposit Wallet; per-order $2,500 hard cap in the TEE, tighter caps in basis-node. Paper venue by default; live orders only with explicit opt-in (`docs/hedging.md`) | `Roles.executors`, `tee_executor` |
 | 9 | Collateral | Testnet `tUSDC`. Production: Circle's native USDC on NEAR, token id asserted live at deploy. The vault keeps hedge inventory on Polygon in executor custody; bridge cost is a vault expense | `collateral_token` |
 | 10 | Partial execution | Default ON. User slider with a 10% floor. No repeated child fills. Orders live at most 10 minutes. If a user chose all-or-none and the venue filled partially, the vault keeps and unwinds the inventory and refunds the user in full | `min_fill_floor_ppm`, `max_order_lifetime_ns` |
 | 11 | Internal opposing flow | No matching (spec decision). Implemented | |
@@ -63,7 +67,7 @@ order-book history (spec section 11).
 | 17 | Deployment intent | (A) testnet and synthetic funds. Before real funds: independent audit, legal review, recalibration on real order-book data, real collateral, live TEE oracle and executor | |
 | 18 | Naming | `Basis-AMM`, `bLP`; insurance is a ledger, not a token | |
 | 19 | Economic model | Synthetic claim, vault owns hedges (spec decision). Implemented | |
-| 20 | Hedge instruments | Exact same-event outcome shares only. No perps or rate futures as hedges in v1 | receipt token check |
+| 20 | Hedge instruments | Exact same-event outcome shares only, bought with FAK orders and unwound when the hedged position closes; redeemed after settlement. No perps or rate futures in v1 | receipt token check, executor |
 | 21 | Market-rules UX | Compact rules summary on the trade screen, full terms one click away, confirmation shows them before signing | `apps/web` |
 | 22 | Multi-outcome | Binary venue tokens first; schemas take any exclusive outcome set (the Fed fixture has 3) | payout matrix |
 | 23 | Profit/loss | Loss capped at M, profit uncapped (spec decision). Implemented and property-tested | |

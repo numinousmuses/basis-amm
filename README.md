@@ -13,7 +13,9 @@ matching between traders. Before a position opens, the contract reserves the wor
 for every outcome of that event and checks it against per-event and global stress budgets.
 
 This implements `docs/spec/Basis_AMM_Engineering_Spec_v0.1.md`. **Testnet and test funds only.**
-Venue hedges run on a deterministic mock executor whose fills are labeled `simulated`. Section 14
+Live Polymarket markets are supported end to end: real order books for marks, real resolution
+from Polymarket's API and the chain, and hedges that fill against the live book (paper by default;
+real orders only with explicit opt-in, see `docs/hedging.md`). Section 14
 decisions, including the calibrated risk premium and leverage caps, are in `docs/decisions.md`.
 
 ## Demo video
@@ -29,6 +31,7 @@ Render it yourself with `pnpm --filter @basis/video render`.
 | Path | What it is |
 |---|---|
 | `crates/oracle-tee` | The mark oracle that runs inside OutLayer's Intel TDX workers (`wasm32-wasip2`): TEE-generated key, second-source check. See `docs/tee-oracle.md`. |
+| `crates/executor-tee` | Hedge executor signer for OutLayer TDX workers: signs only bounded Polymarket orders. See `docs/hedging.md`. |
 | `crates/basis-math` | Fixed-point payoff, depth walk, scenario reserve, fees, fair-value gate, bLP share math. Property-tested. |
 | `contracts/basis-core` | The NEAR contract: market registry with versioned policies and a timelock, the vault and `bLP` (NEP-141), margin engine, oracle verifier, hedge receipts, insurance ledger, views. |
 | `contracts/mock-usdc` | `tUSDC`, a 6-decimal testnet NEP-141 with a faucet. Not money. |
@@ -68,7 +71,9 @@ pnpm --filter @basis/node test                    # 7 automation tests: keeper, 
 pnpm --filter @basis/web test                     # 25 unit tests
 pnpm --filter @basis/web e2e                      # 7 Playwright tests against the running stack
 pnpm --filter @basis/research test                # simulator invariants
-cargo test -p oracle-tee                          # TEE oracle: digest parity with the contract, second-source refusal
+cargo test -p oracle-tee -p executor-tee          # TEE oracle and executor signer (EIP-712 reference vector)
+pnpm --filter @basis/e2e test                     # also runs tee.test.ts and lifecycle.test.ts
+BASIS_LIVE_TESTS=1 pnpm --filter @basis/node test # live Polymarket: books, resolution, SDK signing via TEE, paper-hedged trade
 scripts/build-oracle-tee.sh                       # wasm32-wasip2 build + SHA-256 to pin
 BASIS_TARGET=testnet BASIS_TESTNET_MASTER=<funded>.testnet pnpm --filter @basis/e2e test
 ```
@@ -88,6 +93,9 @@ conservation after every step.
   [`core.live.basislive211107.testnet`](https://testnet.nearblocks.io/address/core.live.basislive211107.testnet)
   (accounts in `docs/integration-proofs/testnet-live.json`). Point basis-node at a deployment
   file and the dashboard at basis-node to trade on it with MyNearWallet or Meteor.
+- The latest stack (`core.basisv349012.testnet`) traded a live Polymarket market on testnet: a user
+  order hedged at the live ask, closed, unwound, and a really-resolved market settled from the
+  Polymarket API and the Conditional Tokens contract. Transactions are in the same proofs file.
 - `docs/deployment.md` explains how to deploy your own stack from faucet accounts.
 
 ## License

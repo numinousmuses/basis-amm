@@ -14,7 +14,7 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test -p basis-math -p oracle-tee
+      - run: cargo test -p basis-math -p oracle-tee -p executor-tee
       - run: scripts/build-oracle-tee.sh
       - run: cargo check -p basis-core -p mock-usdc --target wasm32-unknown-unknown
 
@@ -30,6 +30,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @basis/sdk test
       - run: pnpm --filter @basis/research test
+      - run: pnpm --filter @basis/stack test
       - run: pnpm --filter @basis/web test
       - run: pnpm --filter @basis/web build
       - run: pnpm -r --filter "./packages/**" --filter "./services/**" --filter "./tests/**" typecheck
@@ -50,7 +51,7 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - run: cargo near --version
       - run: scripts/build-contracts.sh
-      - run: scripts/build-oracle-tee.sh && cargo build -p oracle-tee
+      - run: scripts/build-oracle-tee.sh && cargo build -p oracle-tee -p executor-tee && rustup target add wasm32-wasip2 && cargo build --release -p executor-tee --target wasm32-wasip2 && cp target/wasm32-wasip2/release/executor-tee.wasm out/
       - run: infra/local-dev/install-sandbox.sh
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4

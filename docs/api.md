@@ -21,6 +21,9 @@ micro-units (6 decimals); prices in 1e6; leverage in 1e4. The API never signs fo
 | GET | `/api/executor/fills` | mock executor fill ledger |
 | GET | `/api/manifests` | example manifests and their contract form |
 | GET | `/api/polymarket/discover?limit` | live Polymarket markets (read-only Gamma API) |
+| GET | `/api/polymarket/status` | hedge venue (mock/paper/live), executor address, signer audit, spend and caps, custody, resolver observations |
+| GET | `/api/polymarket/market/:slug` | live Polymarket market via the SDK |
+| POST | `/api/dev/admit-polymarket` | dev controls: `{slug, family?, strategy?}` admits a live market through governance |
 | GET | `/api/dev/accounts` | sandbox only: dev account keys |
 | POST | `/api/dev/venue` | dev controls: `{market_id, mids}` or `{market_id, clear: true}` sets mock prices |
 | POST | `/api/dev/resolve` | dev controls: `{market_id, scenario, status?}` submits mock resolution votes |
