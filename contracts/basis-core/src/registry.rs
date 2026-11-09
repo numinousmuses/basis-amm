@@ -275,6 +275,16 @@ impl Contract {
                 }
             }
         }
+        // No new exposure once the pre-resolution maintenance ramp has started: a fresh position is
+        // underwater by the spread and the ramp would liquidate it immediately.
+        if p.pre_resolution_maintenance_bps > p.maintenance_bps
+            && t >= m.descriptor.expected_resolution_ns.0.saturating_sub(p.maintenance_ramp_ns.0)
+        {
+            if e.open {
+                e.reasons.push("PRE_RESOLUTION_RAMP: no new positions while maintenance ramps toward resolution".into());
+            }
+            e.open = false;
+        }
         if m.guardian_close_only {
             e.open = false;
             e.reasons.push("GUARDIAN_CLOSE_ONLY".into());

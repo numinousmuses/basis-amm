@@ -86,7 +86,9 @@ export class OracleWorker {
         await this.ctx.keeper.pushMark(s);
         this.lastPush.set(id, Date.now());
       } catch (e: any) {
-        log("warn", "oracle", "mark push failed", { market: m.descriptor.market_id, err: String(e?.message ?? e) });
+        const msg = String(e?.message ?? e);
+        // A resolved Polymarket market has no order book any more; that is expected, not an error.
+        log(msg.includes("No orderbook exists") ? "debug" : "warn", "oracle", "mark push failed", { market: m.descriptor.market_id, err: msg });
       }
     }
   }

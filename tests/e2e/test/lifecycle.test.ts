@@ -44,7 +44,7 @@ describe("lifecycle", () => {
     // A market resolving in ~150 s whose maintenance ramps from 5% to 50% over those 150 s.
     const m = loadManifest(join(POLICY_DIR, "crypto-sol-weekly.json"));
     m.descriptor.market_id = RAMP;
-    m.descriptor.expected_resolution = "now+150";
+    m.descriptor.expected_resolution = "now+300"; // ramp starts at now+150, opens close then
     m.policy.maintenance_ramp_s = 150;
     m.policy.pre_resolution_maintenance_bps = 5000;
     m.policy.event_windows = [];
@@ -68,11 +68,13 @@ describe("lifecycle", () => {
     x.venue.set(RAMP, { mids: [], books: [book(0, 0.46, 0.47), book(1, 0.53, 0.54)] });
     await x.pushMarks([RAMP]);
     await expectFailure(x.c.lp.liquidate(loser, x.venue.mark(RAMP)), "NOT_LIQUIDATABLE");
+    // Opens are refused once the ramp starts (a new position would be liquidated by the spread alone).
     // Wait until the ramp has climbed past alice's equity ratio (76 / 276 = 27.5%, i.e. ~50% of the ramp).
     const end = BigInt(pa.position.ramp_end_ns);
     const target = BigInt(pa.position.ramp_start_ns) + ((end - BigInt(pa.position.ramp_start_ns)) * 7n) / 10n;
     const waitMs = Number((target - nowNs()) / 1_000_000n);
     if (waitMs > 0) await sleep(waitMs);
+    expect((await x.c.anon.getEffectiveActions(RAMP)).reasons.some((r) => r.startsWith("PRE_RESOLUTION_RAMP"))).toBe(true);
     const view = await x.position(loser);
     expect(view.effective_maintenance_bps).toBeGreaterThan(3000);
     const liq = await x.c.lp.liquidate(loser, x.venue.mark(RAMP));

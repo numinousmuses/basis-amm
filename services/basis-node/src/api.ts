@@ -14,6 +14,7 @@ import type { QuoteEngine } from "./quote.js";
 import type { OracleWorker } from "./oracle.js";
 import type { PolymarketResolver } from "./polymarket/resolution.js";
 import { createPublicClient as pmClient } from "@polymarket/client";
+import { admitPolymarketMarket } from "./polymarket/admit.js";
 import { MockFeed, discoverPolymarket } from "./feeds.js";
 import { log } from "./log.js";
 
@@ -186,6 +187,16 @@ export function startApi(d: ApiDeps, port: number) {
         else feed.set(b.market_id, { mids: b.mids?.map((x: string) => BigInt(x)), status: b.status });
         log("info", "api", "mock venue override", { market: b.market_id, mids: b.mids, status: b.status });
         return { ok: true, label: "MOCK VENUE CONTROL: simulated prices, not a real market" };
+      },
+    ],
+    [
+      "POST",
+      /^\/api\/dev\/admit-polymarket$/,
+      async (_m, req) => {
+        if (!d.devControls) throw new HttpError(403, "dev controls disabled");
+        const b = await body(req);
+        const r = await admitPolymarketMarket(ctx.stack, String(b.slug), { family: b.family, strategy: b.strategy });
+        return { ok: true, market_id: r.marketId, propose_tx: r.proposeTx, approve_tx: r.approveTx, polymarket_slug: r.polymarket.slug };
       },
     ],
     [

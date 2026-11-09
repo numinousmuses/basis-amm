@@ -414,7 +414,7 @@ impl Contract {
             pending_hold_fees: U128(pending),
             max_profit: U128(math(terms.max_profit(max_pay))),
             max_payout: U128(math(terms.max_payout(max_pay))),
-            liquidation_price: U128(math(terms.liquidation_price(fees, ramp, p.maintenance_fixed.0))),
+            liquidation_price: U128(math(terms.liquidation_price(fees, if equity.map(|e| e < terms.margin).unwrap_or(false) { ramp } else { p.maintenance_bps as u128 }, p.maintenance_fixed.0))),
             effective_maintenance_bps: ramp as u16,
             liquidatable,
             position: p,

@@ -76,6 +76,8 @@ export class HedgeExecutor {
   custody = new Map<string, bigint[]>();
   fills: SimFill[] = [];
   private attempts = new Map<string, number>();
+  /** Markets with a venue fill whose NEAR receipt is not confirmed yet (reconciler skips them). */
+  readonly inflight = new Set<string>();
   readonly mockVenue: MockHedgeVenue;
   constructor(
     readonly ctx: NodeContext,
@@ -131,6 +133,7 @@ export class HedgeExecutor {
   }
 
   private record(m: Market, outcome: number, fill: VenueFill, side: "buy" | "sell", orderId: string | null, fillId: string) {
+    this.inflight.add(m.descriptor.market_id);
     const n = m.descriptor.outcomes.length;
     this.hold(m.descriptor.market_id, outcome, side === "buy" ? fill.units : -fill.units, n);
     this.store?.insertFill({ fill_id: fillId, order_id: orderId, market: m.descriptor.market_id, outcome, units: fill.units.toString(), price: fill.avgPrice.toString(), tx: fill.txHash, side, simulated: fill.simulated });
@@ -174,6 +177,8 @@ export class HedgeExecutor {
         } catch (e) {
           this.hold(m.descriptor.market_id, intent.outcome_id, -fill.units, m.descriptor.outcomes.length);
           throw e;
+        } finally {
+          this.inflight.delete(m.descriptor.market_id);
         }
         log("info", "executor", "hedge fill", { order: id, venue: venue.name, units: fill.units, price: fill.avgPrice, tx: fill.txHash, simulated: fill.simulated });
         return;
@@ -224,7 +229,11 @@ export class HedgeExecutor {
         if (!fill) continue;
         const r = this.receipt(m, g.outcome, fill, false, null, venue);
         this.record(m, g.outcome, fill, "sell", orderId, r.fill_id);
-        await this.ctx.executor.submitHedgeFill(r);
+        try {
+          await this.ctx.executor.submitHedgeFill(r);
+        } finally {
+          this.inflight.delete(m.descriptor.market_id);
+        }
         log("info", "executor", "hedge unwound", { order: orderId, venue: venue.name, units: fill.units, price: fill.avgPrice, tx: fill.txHash });
       } catch (e: any) {
         log("warn", "executor", "unwind failed", { order: orderId, err: String(e?.message ?? e) });
@@ -286,6 +295,7 @@ export type MockExecutor = HedgeExecutor;
  * POOL_ONLY markets must hold zero; any mismatch freezes opens on that market. */
 export class Reconciler {
   lastReport = new Map<string, { ok: boolean; detail: string; at: string }>();
+  private strikes = new Map<string, number>();
   constructor(
     readonly ctx: NodeContext,
     readonly executor: HedgeExecutor,
@@ -295,6 +305,7 @@ export class Reconciler {
     const markets = await this.ctx.anon.getMarkets();
     for (const m of markets) {
       const id = m.descriptor.market_id;
+      if (this.executor.inflight.has(id)) continue; // a fill is between venue and NEAR right now
       const risk = await this.ctx.anon.getRiskSummary(id);
       const onchain = risk.hedge_units.map(BigInt);
       const custody = this.executor.custody.get(id) ?? onchain.map(() => 0n);
@@ -306,6 +317,10 @@ export class Reconciler {
         detail = "POOL_ONLY market holds hedge inventory";
       }
       const prev = this.lastReport.get(id);
+      // Freeze only on a mismatch seen on two consecutive passes (one pass can straddle a fill).
+      const strikes = ok ? 0 : (this.strikes.get(id) ?? 0) + 1;
+      this.strikes.set(id, strikes);
+      if (!ok && strikes < 2) continue;
       if (!ok && (!prev || prev.ok)) {
         await this.ctx.keeper.reportReconciliation(id, false, detail);
         log("warn", "reconciler", "mismatch: opens frozen", { market: id, detail });

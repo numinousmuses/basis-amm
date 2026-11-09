@@ -89,7 +89,7 @@ export class PolymarketResolver {
         sourceTsNs: nowNs(),
         status: invalid ? "Invalid" : "Resolved",
         sourceChain: idx === 0 ? "polygon:137:polymarket-resolution-api" : "polygon:137:conditional-tokens",
-        provenance: obs,
+        provenance: { ...obs, payoutsPpm: obs.payoutsPpm.map(String) },
         attestationRef: `${obs.source}:${obs.evidence}`.slice(0, 200),
       });
       const signer = this.ctx.resolveReporters[idx];
