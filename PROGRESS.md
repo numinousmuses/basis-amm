@@ -48,11 +48,11 @@ labeled deterministic mock executor (spec section 11 "hackathon minimum").
 - [x] M3 sandbox acceptance suite tests/e2e/test/acceptance.test.ts: 16/16 pass (spec 11 items 1-12 + adversarial), ~10 min
 - [x] M4 services/basis-node (oracle, keeper, mock executor, reconciler, SQLite indexer, quote, REST/WS :8797, Polymarket read-only, lean testnet mode); 7/7 integration tests
 - [x] M5+M6 apps/web done by subagent: 10 pages, 25 vitest + 7 Playwright pass (agent-reported; re-verify before publish), footage in video/footage
-- [ ] M6 Playwright e2e against local sandbox stack
-- [ ] M7 NEAR testnet deployment + scripted acceptance demo with tx hashes recorded
-- [x] M8 docs written (architecture, threat-model, risk-policy, api, deployment, deviations, decisions); integration-proofs pending testnet
-- [ ] M9 publish public GitHub repo numinousmuses/basis-amm + CI
-- [ ] M10 Remotion demo video rendered from real app footage
+- [x] M6 Playwright 7/7 re-verified by me against the dev stack; web vitest 25/25; build ok
+- [x] M7 testnet: acceptance 16/16 on core.basislive211107.testnet (docs/integration-proofs/README.md); live stack core.live.basislive211107.testnet with basis-node --stack infra/testnet/live-stack.secret.json --port 8798 (lean mode, view cache)
+- [x] M8 docs complete incl. integration proofs
+- [x] M9 https://github.com/numinousmuses/basis-amm public; CI green (rust, typescript, sandbox-e2e); release v0.1.0 with video
+- [x] M10 video/basis-amm-demo.mp4 (86 s, Remotion, real footage)
 
 ## Log
 
@@ -72,3 +72,5 @@ labeled deterministic mock executor (spec section 11 "hackathon minimum").
   then `npx tsx scripts/deploy-testnet.ts basislive211107.testnet live` and run basis-node --stack infra/testnet/live-stack.secret.json.
   Remotion video: video/src/Demo.tsx (1920x1080, 2570 frames). Render: cd video && npx remotion render BasisDemo out/basis-amm-demo.mp4 --props='{"repoUrl":"https://github.com/numinousmuses/basis-amm","testnetContract":"...","testnetSteps":N}'
   Research finding: 5% floor coverage loses LP money in all families; breakeven 10-40% (docs/decisions.md).
+- 2026-11-09 04:40 ET: ALL MILESTONES DONE. Running processes: sandbox dev stack (:3030/:8797), testnet node (:8798), vite preview (:5419).
+  Testnet RPC lessons: FastNEAR free tier and rpc.testnet.near.org both 429; fixed with SDK backoff + shared deduped view cache (lean mode).
