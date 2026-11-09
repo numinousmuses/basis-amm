@@ -1,0 +1,206 @@
+{
+  "network": "testnet",
+  "contract": "core.basislive211107.testnet",
+  "token": "usdc.basislive211107.testnet",
+  "accounts": {
+    "core": "core.basislive211107.testnet",
+    "usdc": "usdc.basislive211107.testnet",
+    "admin": "admin.basislive211107.testnet",
+    "risk": "risk.basislive211107.testnet",
+    "guardian": "guardian.basislive211107.testnet",
+    "keeper": "keeper.basislive211107.testnet",
+    "executor": "executor.basislive211107.testnet",
+    "lp": "lp.basislive211107.testnet",
+    "alice": "alice.basislive211107.testnet",
+    "bob": "bob.basislive211107.testnet",
+    "carol": "carol.basislive211107.testnet",
+    "dave": "dave.basislive211107.testnet"
+  },
+  "deploy_txs": {
+    "create:core": "https://testnet.nearblocks.io/txns/NiMSHmJsZSrUC1EL71fjSYHfZDRhdRSxekqKCBUDWEK",
+    "create:usdc": "https://testnet.nearblocks.io/txns/4YwDDMXq9QEyVcedUWr8PFWzKzZwgAQznY8npSNjT5v1",
+    "create:admin": "https://testnet.nearblocks.io/txns/BHkJVjGP8Vo1jHu3ZZCtM5TDdTivsiTcgPJMqpnwKQzs",
+    "create:risk": "https://testnet.nearblocks.io/txns/HbG2GeeZsmSDhhtLouQxJQLZdam6w2gccR3oh8CoXRJD",
+    "create:guardian": "https://testnet.nearblocks.io/txns/HcX4gR4ZLoTDsoinYdMBogabdqg8ACo8qvXiCyoEK3c3",
+    "create:keeper": "https://testnet.nearblocks.io/txns/HFBKDnVRcCpdjaCESyFQ56nuMHrGDUfifgBswmM2EnjE",
+    "create:executor": "https://testnet.nearblocks.io/txns/FjibPE8fr7JxgSRcbpEs7WaRbs2wqwU9MD647v2TQYh3",
+    "create:lp": "https://testnet.nearblocks.io/txns/CuzkNekWp5a7cT3WjeA9Cszy3DKapU3gBH2CqDQsLJWc",
+    "create:alice": "https://testnet.nearblocks.io/txns/FmH2q1DZ3H7X1RBJQnUwZrV7M6W6WKiUsnLnNU9WY5Yo",
+    "create:bob": "https://testnet.nearblocks.io/txns/EVrRv8Q3tyD61jsU9P18eCMHuuCUSKbicp2xZxesA6Cy",
+    "create:carol": "https://testnet.nearblocks.io/txns/Fwtr6jcT3FfpXZ8XqoWUVUWbAr2tJ1KuAtMRDJe4WgFC",
+    "create:dave": "https://testnet.nearblocks.io/txns/AzzrCsDFeTkif8yXMmc6tgrUfVFubXaDgQmadXE9pkJ5",
+    "deploy:usdc": "https://testnet.nearblocks.io/txns/9TKKi9rZ1tqD1nCGp11d15JgjzChBkg1qDXuT8cBsuJj",
+    "init:usdc": "https://testnet.nearblocks.io/txns/ArrRLS8bR8c9WGHArAaACUEDvEqXDWG7XDccKXubWPxM",
+    "deploy:core": "https://testnet.nearblocks.io/txns/8VcJNfpwCLEncPgdyPZAM2mwVf4RPTGzzuSzk1N4D6jG",
+    "init:core": "https://testnet.nearblocks.io/txns/EN5ppciULxst889q73wfJYYQqYuPonXyLjakZan65koU",
+    "propose:pm-gold-above-3000": "https://testnet.nearblocks.io/txns/vdxBuDYTurSVUD5STdpBJCxuTGMV1W2EXZMhNji9h34",
+    "propose:pm-btc-above-100k-daily": "https://testnet.nearblocks.io/txns/E6h7EeC71gbx4pFVLJr7Z13MLdcx5N2kUhsSz67JdfNC",
+    "propose:pm-eth-above-4k-weekly": "https://testnet.nearblocks.io/txns/CjuyuDmZWw4Sz54GT86ZV5UjSNiVr7TCbLtKTENRRepw",
+    "propose:pm-sol-above-300-weekly": "https://testnet.nearblocks.io/txns/ELc2cqnd33atYrFvqEyjBZSvoX1Bb2xWH6P5LLj7zrKE",
+    "propose:pm-senate-control-2026": "https://testnet.nearblocks.io/txns/EEPNA2VkfbdebAYKPh2j1AbWmD8Q5U9kwRRSKnV5dqkF",
+    "propose:pm-fed-dec-decision": "https://testnet.nearblocks.io/txns/CVNp2KavvweViQQaBLk5sSG1d4vDuUmq3WcJGVWPGbfk",
+    "propose:pm-nba-lakers-celtics": "https://testnet.nearblocks.io/txns/7tbCxcuajY4xJmm6ZPvh3yye2s59pPZWQfGN1aiGb7aC",
+    "approve:1": "https://testnet.nearblocks.io/txns/LQH9NxEgrbjcAY1CqUFrDgDPdiYnUsnRc95cJvMEstN",
+    "approve:2": "https://testnet.nearblocks.io/txns/Cppi7E8XNY9igT3JzVQu8M5MEpBNfRKgVieV31Cp273E",
+    "approve:3": "https://testnet.nearblocks.io/txns/Kfkqgm7MNgbinnhijZRczsDJ9SHZsrz3BQt27Ytbaj6",
+    "approve:4": "https://testnet.nearblocks.io/txns/39yqw272MYe5eZp3zJjPvJTcrjnPeR1aGUTFEqsZRF5a",
+    "approve:5": "https://testnet.nearblocks.io/txns/Et9bcNSLJUZdD9shk7Zj7etJTb7jZuD3rerFSCWvbDDK",
+    "approve:6": "https://testnet.nearblocks.io/txns/ABNiu68X688QGcwUEgnrTs6kBNSsaU5LDFn6MnZKbJCH",
+    "approve:7": "https://testnet.nearblocks.io/txns/4C85dxVAkr5FGfuemwxeVesjgHZAD5oQfXkWsqCN7Zbx",
+    "insurance_seed": "https://testnet.nearblocks.io/txns/9KdesVs195qouhLyJrDgcV23VLKSwJRUPMUwsZqsXKuG",
+    "lp_deposit": "https://testnet.nearblocks.io/txns/CfVNCTaqD1ScHax9D7rj5PF5L9Af5FGSwHUPRCmjgbrQ"
+  },
+  "steps": [
+    {
+      "step": "8. all-or-none rejected + refunded",
+      "tx": "7UMi2uTHoJ39CnVivQpTSYwCQC9XfE4nwjNCMYe61N2R",
+      "url": "https://testnet.nearblocks.io/txns/7UMi2uTHoJ39CnVivQpTSYwCQC9XfE4nwjNCMYe61N2R"
+    },
+    {
+      "step": "8/12. partial fill (default ON) executed",
+      "tx": "AkEciBGvA6btNxbgPrfFTYxBmPuSDAicN3Vsodk7STND",
+      "url": "https://testnet.nearblocks.io/txns/AkEciBGvA6btNxbgPrfFTYxBmPuSDAicN3Vsodk7STND"
+    },
+    {
+      "step": "3. open 5x YES POOL_ONLY $100 @0.50",
+      "tx": "6ryjUoWB42jxTbeVPpnbTEwm4ffoud5bs3fAuY7gNQqC",
+      "url": "https://testnet.nearblocks.io/txns/6ryjUoWB42jxTbeVPpnbTEwm4ffoud5bs3fAuY7gNQqC"
+    },
+    {
+      "step": "4. partial close 50% at executable bid $0.60",
+      "tx": "FbBaWerq6cLnc9EwiZBAL7qJVk9otV6YEd7Mw5PSEmXH",
+      "url": "https://testnet.nearblocks.io/txns/FbBaWerq6cLnc9EwiZBAL7qJVk9otV6YEd7Mw5PSEmXH"
+    },
+    {
+      "step": "4. take-profit trigger at $0.66",
+      "tx": "2mjuqXJfb8KgbtY6egwZBzdVMc4uq4CMgfo41agixZhF",
+      "url": "https://testnet.nearblocks.io/txns/2mjuqXJfb8KgbtY6egwZBzdVMc4uq4CMgfo41agixZhF"
+    },
+    {
+      "step": "4. stop-loss trigger at $0.44",
+      "tx": "DsZTzp5qtuR1ZZTjNNrpoQBYhk5b91iVtEEyP1Cyv128",
+      "url": "https://testnet.nearblocks.io/txns/DsZTzp5qtuR1ZZTjNNrpoQBYhk5b91iVtEEyP1Cyv128"
+    },
+    {
+      "step": "4. early full close",
+      "tx": "CTA4MZJqvEJR5XtQcCKX6X2VzcyPTabbhwkErZFdMBND",
+      "url": "https://testnet.nearblocks.io/txns/CTA4MZJqvEJR5XtQcCKX6X2VzcyPTabbhwkErZFdMBND"
+    },
+    {
+      "step": "4b. permissionless liquidation (keeper reward transfer fails -> claimable)",
+      "tx": "96W7DSg4QX6tTJsDpJwH6SRWbdQfJ9zvcCo6y2bcxb9j",
+      "url": "https://testnet.nearblocks.io/txns/96W7DSg4QX6tTJsDpJwH6SRWbdQfJ9zvcCo6y2bcxb9j"
+    },
+    {
+      "step": "10. failed callback recovered via claim()",
+      "tx": "AZNt94frzBGjQ5VfQeWZDqoxoBRCFZjDAtmstcGttHyC",
+      "url": "https://testnet.nearblocks.io/txns/AZNt94frzBGjQ5VfQeWZDqoxoBRCFZjDAtmstcGttHyC"
+    },
+    {
+      "step": "4b. gap-to-zero liquidation",
+      "tx": "7tMGZciXBf6ph3UJNngYT48mq2kWpQ7vuCgDbBEGmVvE",
+      "url": "https://testnet.nearblocks.io/txns/7tMGZciXBf6ph3UJNngYT48mq2kWpQ7vuCgDbBEGmVvE"
+    },
+    {
+      "step": "6. YES fill vs vault",
+      "tx": "CTuVTC7CKKNPKX3wuNQZtzM8XyZCPxrRcQ9gkobrtEbz",
+      "url": "https://testnet.nearblocks.io/txns/CTuVTC7CKKNPKX3wuNQZtzM8XyZCPxrRcQ9gkobrtEbz"
+    },
+    {
+      "step": "6. NO fill vs vault (separate)",
+      "tx": "JAHCmKXpsvpSby7zTR1hZDbMm4ihZ8eVPaiHy65Rbbwh",
+      "url": "https://testnet.nearblocks.io/txns/JAHCmKXpsvpSby7zTR1hZDbMm4ihZ8eVPaiHy65Rbbwh"
+    },
+    {
+      "step": "5. finalize BTC YES",
+      "tx": "GXaWXjMvvLABzDZijtHsc1JbMErNKbe63s4S7k1EmNXk",
+      "url": "https://testnet.nearblocks.io/txns/GXaWXjMvvLABzDZijtHsc1JbMErNKbe63s4S7k1EmNXk"
+    },
+    {
+      "step": "5. settle BTC positions",
+      "tx": "2G2jvTT7cyUyvzaXHADYUzyvafS3LhEoJhiqJZaCyAmE",
+      "url": "https://testnet.nearblocks.io/txns/2G2jvTT7cyUyvzaXHADYUzyvafS3LhEoJhiqJZaCyAmE"
+    },
+    {
+      "step": "5b. hedge capital to executor custody",
+      "tx": "8RGyiRAo8DHsxhUXe4VyTrJpPFfe5x2sWKWQaNo1q9sd",
+      "url": "https://testnet.nearblocks.io/txns/8RGyiRAo8DHsxhUXe4VyTrJpPFfe5x2sWKWQaNo1q9sd"
+    },
+    {
+      "step": "5b. simulated exact-share hedge fill",
+      "tx": "GiwFDNzuaMZU5ckL99Qx5KGjSxvn76J9ib4HvtMPf716",
+      "url": "https://testnet.nearblocks.io/txns/GiwFDNzuaMZU5ckL99Qx5KGjSxvn76J9ib4HvtMPf716"
+    },
+    {
+      "step": "5b. hedge redemption at invalid 0.50 payout",
+      "tx": "FjbneM5WSyQwXjAA64zRTafZbCmDXThEFrnsV6KvEYfG",
+      "url": "https://testnet.nearblocks.io/txns/FjbneM5WSyQwXjAA64zRTafZbCmDXThEFrnsV6KvEYfG"
+    },
+    {
+      "step": "5b. custody returned",
+      "tx": "HBmZKhWiA7ynyyDrMS3vjajtMCjLvd92e1Jze5EpmaCA",
+      "url": "https://testnet.nearblocks.io/txns/HBmZKhWiA7ynyyDrMS3vjajtMCjLvd92e1Jze5EpmaCA"
+    },
+    {
+      "step": "3b. hedge budget committed to executor",
+      "tx": "J9tdwkWfxBcfcuYq87DkjsM1iMgfSfWSvJKYo77JJKdC",
+      "url": "https://testnet.nearblocks.io/txns/J9tdwkWfxBcfcuYq87DkjsM1iMgfSfWSvJKYo77JJKdC"
+    },
+    {
+      "step": "3b. HEDGE_REQUIRED finalized OPEN",
+      "tx": "CwjmAytszDecmQi7bU9BPkNt1C62JwVwo7ZJEe1xByKx",
+      "url": "https://testnet.nearblocks.io/txns/CwjmAytszDecmQi7bU9BPkNt1C62JwVwo7ZJEe1xByKx"
+    },
+    {
+      "step": "8. HEDGE_REQUIRED partial 60% finalized",
+      "tx": "CWLJ4okumABAS4q2sKvqmSmmknsrXBgKuSKSGAYLjrHH",
+      "url": "https://testnet.nearblocks.io/txns/CWLJ4okumABAS4q2sKvqmSmmknsrXBgKuSKSGAYLjrHH"
+    },
+    {
+      "step": "8. all-or-none HEDGE_REQUIRED refunded",
+      "tx": "6zwNgGwL1jAfeXFAHMN5u1aMJRd7mQJ6KyAnXDLGAMgz",
+      "url": "https://testnet.nearblocks.io/txns/6zwNgGwL1jAfeXFAHMN5u1aMJRd7mQJ6KyAnXDLGAMgz"
+    },
+    {
+      "step": "10. reconciliation mismatch freezes opens",
+      "tx": "82m279dS72CiG7d2pDTh7kVxv9btwk8xcPxNSzgVqoov",
+      "url": "https://testnet.nearblocks.io/txns/82m279dS72CiG7d2pDTh7kVxv9btwk8xcPxNSzgVqoov"
+    },
+    {
+      "step": "10. orphan write-off: insurance first",
+      "tx": "72WjbhcuMzf1TKc5k25nku78LtRrkGXMBVdqGtW4LHxF",
+      "url": "https://testnet.nearblocks.io/txns/72WjbhcuMzf1TKc5k25nku78LtRrkGXMBVdqGtW4LHxF"
+    },
+    {
+      "step": "7. propose new weather market (no redeploy)",
+      "tx": "9HFECk31hxSLJWRuQtMekDSNaf3UQKCri4J6rt5uCHPz",
+      "url": "https://testnet.nearblocks.io/txns/9HFECk31hxSLJWRuQtMekDSNaf3UQKCri4J6rt5uCHPz"
+    },
+    {
+      "step": "7. CLOSE_ONLY policy v2 activated during catalyst",
+      "tx": "319vB9dZ1Di45y4We1tHCYUadAYn5NQe35g1Dw3ai7Pf",
+      "url": "https://testnet.nearblocks.io/txns/319vB9dZ1Di45y4We1tHCYUadAYn5NQe35g1Dw3ai7Pf"
+    },
+    {
+      "step": "10. weather market finalized after dispute + reset",
+      "tx": "94RzvdA2QQUsKbXmnqCSVbMmEtS6P8XEpPV9mZX2GGg2",
+      "url": "https://testnet.nearblocks.io/txns/94RzvdA2QQUsKbXmnqCSVbMmEtS6P8XEpPV9mZX2GGg2"
+    },
+    {
+      "step": "11. naive $0.80 5x quote rejected FAIR_VALUE",
+      "tx": "7YvBAwJLiaFLQXN7WvxZ16UXFdcqmVGEWraDVFtuXVNh",
+      "url": "https://testnet.nearblocks.io/txns/7YvBAwJLiaFLQXN7WvxZ16UXFdcqmVGEWraDVFtuXVNh"
+    },
+    {
+      "step": "11. repriced to 2.7x and opened",
+      "tx": "A31oamLMU65j3RKLusGY3D5zXWNAPm8DA8kfsPMDeocE",
+      "url": "https://testnet.nearblocks.io/txns/A31oamLMU65j3RKLusGY3D5zXWNAPm8DA8kfsPMDeocE"
+    },
+    {
+      "step": "adv. small LP withdrawal settled",
+      "tx": "CduAE3ntY3ZcaYsJFmhfuXN2ZpCHPmhixSD1q3RAHwVQ",
+      "url": "https://testnet.nearblocks.io/txns/CduAE3ntY3ZcaYsJFmhfuXN2ZpCHPmhixSD1q3RAHwVQ"
+    }
+  ],
+  "ran_at": "2026-11-09T08:23:29.755Z"
+}
