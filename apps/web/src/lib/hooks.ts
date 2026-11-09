@@ -7,8 +7,10 @@ export interface Loaded<T> {
   reload: () => Promise<void>;
 }
 
-/** Fetch on mount and every `intervalMs` (0 = once). Keeps the last good value on transient errors. */
-export function usePoll<T>(fn: () => Promise<T>, deps: unknown[], intervalMs = 0): Loaded<T> {
+/** Fetch on mount and every `intervalMs` (0 = once). Keeps the last good value on transient errors.
+ * A change in `deps` clears the data (new subject); a change in `refreshKey` refetches in place
+ * without clearing, so open dialogs and in-flight trackers survive a post-transaction refresh. */
+export function usePoll<T>(fn: () => Promise<T>, deps: unknown[], intervalMs = 0, refreshKey?: unknown): Loaded<T> {
   const [data, setData] = useState<T | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,6 +41,14 @@ export function usePoll<T>(fn: () => Promise<T>, deps: unknown[], intervalMs = 0
     return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    void reload();
+  }, [refreshKey, reload]);
   return { data, error, loading, reload };
 }
 

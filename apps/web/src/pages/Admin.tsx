@@ -14,7 +14,7 @@ const slug = (t: string) => t.split(" ")[0].toLowerCase();
 export function AdminPage({ tab: initial }: { tab?: string }) {
   const app = useApp();
   const [tab, setTab] = useState<Tab>(() => TABS.find((t) => slug(t) === initial) ?? "Markets");
-  const markets = usePoll(() => api.markets(), [app.version], 6000);
+  const markets = usePoll(() => api.markets(), [], 6000, app.version);
   useLive((m) => m.type === "event" && ["guardian", "market_state", "restrictions_lifted", "policy_activated", "policy_proposed", "resolution_vote", "resolution_finalized", "settled"].includes(m.kind) && void markets.reload());
   const roles = app.roleOf(app.accountId);
   return (
@@ -142,7 +142,7 @@ function Governance({ rows }: { rows: MarketRow[] }) {
   const app = useApp();
   const tx = useTx();
   const can = useRoles();
-  const props = usePoll(() => app.anon.getProposals(), [app.version], 5000);
+  const props = usePoll(() => app.anon.getProposals(), [], 5000, app.version);
   const [mid, setMid] = useState(rows.find((r) => r.policy)?.market.descriptor.market_id ?? "");
   const row = rows.find((r) => r.market.descriptor.market_id === mid);
   const [levStr, setLev] = useState("");
@@ -217,7 +217,7 @@ function GuardianSwitches() {
   const app = useApp();
   const tx = useTx();
   const can = useRoles();
-  const pause = usePoll(() => app.anon.getPause(), [app.version], 5000);
+  const pause = usePoll(() => app.anon.getPause(), [], 5000, app.version);
   const roles = usePoll(() => app.anon.getRoles(), [], 0);
   const p = pause.data;
   const sw = (label: string, on: boolean | undefined, act: () => Promise<unknown>, testId: string) => (

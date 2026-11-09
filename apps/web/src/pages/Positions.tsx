@@ -303,7 +303,6 @@ function ManageModal({ p, market, onClose }: { p: PositionView; market?: Market;
           <button className="primary" style={{ width: "100%" }} onClick={() => void close()} disabled={!!tracked && !tracked.requestError && !tracked.orderId} data-testid="close-submit">
             Request {fractionPct < 100 ? "partial close" : "close"}
           </button>
-          {tracked && <OrderTracker key={tracked.submittedAt + (tracked.orderId ?? "")} t={tracked} />}
 
           <div className="smallTitle">Add margin</div>
           <div className="inlineField">
@@ -332,6 +331,7 @@ function ManageModal({ p, market, onClose }: { p: PositionView; market?: Market;
           {tx.error && <ErrorBox error={tx.error} />}
         </>
       )}
+      {tracked && <OrderTracker key={tracked.submittedAt + (tracked.orderId ?? "")} t={tracked} />}
       {!isOpen && (
         <div className="summary">
           <SumRow k="Paid out" v={usd(pos.paid_out)} cls="green" />

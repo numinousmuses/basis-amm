@@ -99,7 +99,7 @@ export function OrderTracker({ t, onDone }: { t: TrackedOrder; onDone?: (o: Orde
         </div>
       )}
       {state === "Executed" && t.kind === "open" && pos && (
-        <div className="summary" data-testid="open-result">
+        <div className="summary" data-testid="open-result" data-position-id={pos.position.position_id}>
           <div className="sumrow">
             <span>Position</span>
             <strong>
@@ -132,7 +132,7 @@ export function OrderTracker({ t, onDone }: { t: TrackedOrder; onDone?: (o: Orde
         </div>
       )}
       {state === "Executed" && t.kind === "close" && pos && (
-        <div className="summary" data-testid="close-result">
+        <div className="summary" data-testid="close-result" data-position-id={pos.position.position_id}>
           <div className="sumrow">
             <span>Result</span>
             <strong>{r?.kind === "closed" ? (r.full ? "Fully closed" : "Partially closed") : order?.result}</strong>

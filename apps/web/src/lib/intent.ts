@@ -123,7 +123,7 @@ export type OrderResult =
 /** Parse `Order.result` strings written by the contract. */
 export function parseOrderResult(o: Pick<Order, "state" | "result" | "position_id">): OrderResult {
   const r = o.result ?? "";
-  const open = r.match(/^OPEN position (\d+) fill_ppm (\d+)/);
+  const open = r.match(/^OPEN position (\d+)(?: [a-z_]+)* fill_ppm (\d+)/);
   if (open) return { kind: "open", positionId: open[1], fillPpm: BigInt(open[2]) };
   const closed = r.match(/^CLOSED:(\d+):(full|partial)/);
   if (closed) return { kind: "closed", positionId: closed[1], full: closed[2] === "full" };

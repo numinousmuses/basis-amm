@@ -15,7 +15,7 @@ const PERIODS: Array<[string, number]> = [
 
 export function VaultPage() {
   const app = useApp();
-  const vault = usePoll(() => api.vault(), [app.version], 6000);
+  const vault = usePoll(() => api.vault(), [], 6000, app.version);
   const markets = usePoll(() => api.markets(), [], 15000);
   const [period, setPeriod] = useState(PERIODS[1]);
   const hist = usePoll(() => api.vaultHistory(Date.now() - period[1]), [period[1]], 30000);

@@ -2,7 +2,6 @@ import { defineConfig, devices } from "@playwright/test";
 
 /** E2E against the running basis-node stack (default http://127.0.0.1:8797) and the built app
  * served by `vite preview`. Override with BASIS_API / WEB_PORT. */
-const api = process.env.BASIS_API ?? "http://127.0.0.1:8797";
 const port = Number(process.env.WEB_PORT ?? 5417);
 
 export default defineConfig({
@@ -14,7 +13,7 @@ export default defineConfig({
   retries: 0,
   reporter: [["list"]],
   use: {
-    baseURL: `http://127.0.0.1:${port}/?api=${encodeURIComponent(api)}`,
+    baseURL: `http://127.0.0.1:${port}`,
     viewport: { width: 1600, height: 1000 },
     trace: "retain-on-failure",
     screenshot: "only-on-failure",

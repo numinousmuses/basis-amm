@@ -28,7 +28,7 @@ export async function readAccount(c: BasisClient, id: string): Promise<AccountDa
 
 export function useAccount(intervalMs = 5000) {
   const app = useApp();
-  return usePoll(() => (app.accountId ? readAccount(app.anon, app.accountId) : Promise.resolve(null)), [app.accountId, app.version], intervalMs);
+  return usePoll(() => (app.accountId ? readAccount(app.anon, app.accountId) : Promise.resolve(null)), [app.accountId], intervalMs, app.version);
 }
 
 export function useMarketsMap() {
