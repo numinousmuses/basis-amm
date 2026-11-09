@@ -20,7 +20,7 @@ decisions, including the calibrated risk premium and leverage caps, are in `docs
 
 ## Demo video
 
-[`video/basis-amm-demo.mp4`](video/basis-amm-demo.mp4) (86 s, 1080p). Built with Remotion from
+[`video/basis-amm-demo.mp4`](video/basis-amm-demo.mp4) (112 s, 1080p). Built with Remotion from
 footage the Playwright capture script recorded on the real app (`video/src`, `video/footage`).
 Render it yourself with `pnpm --filter @basis/video render`.
 

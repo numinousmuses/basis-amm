@@ -145,7 +145,6 @@ export interface DiscoveredMarket {
   category: string;
   /** Last price of the first outcome (usually YES). */
   price: number | null;
-  conditionId2?: string;
 }
 
 /** Read-only Gamma API discovery: active, order-book-enabled markets. Produces data for draft
